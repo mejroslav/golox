@@ -44,7 +44,7 @@ func (s *CodeScanner) Run(source string, verbose bool) bool {
 
 func (s *CodeScanner) ScanTokens() ([]Token, bool) {
 	hadError := false
-	for !s.isAtAnd() {
+	for !s.isAtEnd() {
 		// We are at the beginning of the next lexeme.
 		s.start = s.current
 		s.scanToken()
@@ -110,7 +110,7 @@ func (s *CodeScanner) scanToken() {
 	case '/':
 		if s.match('/') {
 			// A comment goes until the end of the line.
-			for s.peek() != '\n' && !s.isAtAnd() {
+			for s.peek() != '\n' && !s.isAtEnd() {
 				s.advance()
 			}
 		} else {
@@ -127,7 +127,7 @@ func (s *CodeScanner) scanToken() {
 
 	// New line.
 	case '\n':
-		s.line++
+		s.newLine()
 
 	default:
 		// Here we use the principle of *maximal munch*, trying to consume as many characters as possible.
@@ -139,7 +139,7 @@ func (s *CodeScanner) scanToken() {
 			s.identifier()
 		} else {
 			// Unexpected character.
-			Error(s.line, "Unexpected character.")
+			Error(s.line, s.getContextLines(), "Unexpected character.")
 		}
 
 	}
@@ -159,16 +159,16 @@ func (s *CodeScanner) addTokenWithValue(tokenType TokenType, value any) {
 //
 // It also supports multi-line strings.
 func (s *CodeScanner) string() {
-	for s.peek() != '"' && !s.isAtAnd() {
+	for s.peek() != '"' && !s.isAtEnd() {
 		if s.peek() == '\n' {
 			// Strings can span multiple lines, so we need to increment the line counter.
-			s.line++
+			s.newLine()
 		}
 		s.advance()
 	}
 
-	if s.isAtAnd() {
-		Error(s.line, "Unterminated string.")
+	if s.isAtEnd() {
+		Error(s.line, s.getContextLines(), "Unterminated string.")
 		return
 	} else {
 		// The closing ".
@@ -198,7 +198,7 @@ func (s *CodeScanner) number() {
 
 	value, err := strconv.ParseFloat(s.source[s.start:s.current], 64)
 	if err != nil {
-		Error(s.line, "Invalid number format.")
+		Error(s.line, s.getContextLines(), "Invalid number format.")
 		return
 	}
 	s.addTokenWithValue(NUMBER, value)
@@ -243,7 +243,7 @@ func (s *CodeScanner) advance() rune {
 // match checks if the current character matches the expected character.
 // If it does, it consumes the character and returns true. Otherwise, it returns false.
 func (s *CodeScanner) match(expected rune) bool {
-	if s.isAtAnd() {
+	if s.isAtEnd() {
 		return false
 	}
 	if s.charAt(s.current) != expected {
@@ -255,7 +255,7 @@ func (s *CodeScanner) match(expected rune) bool {
 
 // peek returns the current character without consuming it.
 func (s *CodeScanner) peek() rune {
-	if s.isAtAnd() {
+	if s.isAtEnd() {
 		return '\000'
 	} else {
 		return s.charAt(s.current)
@@ -276,6 +276,58 @@ func (s *CodeScanner) charAt(index int) rune {
 	return rune(s.source[index])
 }
 
-func (s *CodeScanner) isAtAnd() bool {
+func (s *CodeScanner) newLine() {
+	s.line++
+}
+
+func (s *CodeScanner) isAtEnd() bool {
 	return s.current >= len(s.source)
+}
+
+// getContextLines returns a string with the lines around the current line for error reporting.
+//
+// TODO: Improve the positioning of the marker.
+func (s *CodeScanner) getContextLines() string {
+	current := s.current
+	output := ""
+	linesBefore := 2
+	linesAfter := 2
+
+	lines := 0
+	for i := current - 1; i >= 0; i-- {
+		c := s.charAt(i)
+		if c == '\n' {
+			lines++
+			if lines > linesBefore {
+				break
+			}
+		}
+		output = string(c) + output
+	}
+
+	markerPlaced := false
+	lines = 0
+	for i := current; i < len(s.source); i++ {
+		if s.isAtEnd() {
+			break
+		}
+		c := s.charAt(i)
+		if c == '\n' {
+			lines++
+			if lines == 1 {
+				output += "\n^^^^^^^^^^"
+				markerPlaced = true
+			}
+			if lines > linesAfter {
+				break
+			}
+		}
+		output += string(c)
+	}
+
+	if !markerPlaced {
+		output += "^^^^^^^^^^"
+	}
+
+	return output
 }
