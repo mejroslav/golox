@@ -12,10 +12,11 @@ type CodeScanner struct {
 	start   int
 	current int
 	line    int
+	file    string
 }
 
-func NewCodeScanner(line int) *CodeScanner {
-	return &CodeScanner{line: line}
+func NewCodeScanner(line int, file string) *CodeScanner {
+	return &CodeScanner{line: line, file: file}
 }
 
 // Run scans the provided source code and prints the tokens. It returns true if scanning was successful, false otherwise.
@@ -28,8 +29,7 @@ func (s *CodeScanner) Run(source string, verbose bool) bool {
 	s.start = 0
 	s.current = 0
 	s.tokens = []Token{}
-
-	slog.Debug("Starting scan", "source_length", len(source))
+	slog.Debug("Starting scan", "file", s.file, "length", len(s.source))
 
 	tokens, hadError = s.ScanTokens()
 
@@ -138,7 +138,7 @@ func (s *CodeScanner) scanToken() {
 			s.identifier()
 		} else {
 			// Unexpected character.
-			Error(s.line, s.getContextLines(), "Unexpected character.")
+			Error(s.file, s.line, s.getContextLines(), fmt.Sprintf("Unexpected character '%c'.", c))
 		}
 
 	}
@@ -167,7 +167,7 @@ func (s *CodeScanner) string() {
 	}
 
 	if s.isAtEnd() {
-		Error(s.line, s.getContextLines(), "Unterminated string.")
+		Error(s.file, s.line, s.getContextLines(), "Unterminated string.")
 		return
 	} else {
 		// The closing ".
@@ -197,7 +197,7 @@ func (s *CodeScanner) number() {
 
 	value, err := strconv.ParseFloat(s.source[s.start:s.current], 64)
 	if err != nil {
-		Error(s.line, s.getContextLines(), "Invalid number format.")
+		Error(s.file, s.line, s.getContextLines(), "Invalid number format: "+err.Error())
 		return
 	}
 	s.addTokenWithValue(NUMBER, value)
@@ -284,26 +284,32 @@ func (s *CodeScanner) isAtEnd() bool {
 }
 
 // getContextLines returns a string with the lines around the current line for error reporting.
-//
-// TODO: Improve the positioning of the marker.
 func (s *CodeScanner) getContextLines() string {
+
 	current := s.current
 	output := ""
-	linesBefore := 2
-	linesAfter := 2
+	linesBeforeError := 1
+	linesAfterError := 2
+	charsBeforeError := 0
+	charsAfterError := -1
 
+	// Get lines before the current line.
 	lines := 0
 	for i := current - 1; i >= 0; i-- {
 		c := s.charAt(i)
 		if c == '\n' {
 			lines++
-			if lines > linesBefore {
+			if lines > linesBeforeError {
 				break
 			}
+		}
+		if lines == 0 {
+			charsBeforeError++
 		}
 		output = string(c) + output
 	}
 
+	// Get lines after the current line.
 	markerPlaced := false
 	lines = 0
 	for i := current; i < len(s.source); i++ {
@@ -314,19 +320,35 @@ func (s *CodeScanner) getContextLines() string {
 		if c == '\n' {
 			lines++
 			if lines == 1 {
-				output += "\n^^^^^^^^^^"
+				output += marker(charsBeforeError, charsAfterError)
 				markerPlaced = true
+				charsAfterError = 0
 			}
-			if lines > linesAfter {
+			if lines > linesAfterError {
 				break
 			}
+		} else {
+			charsAfterError++
 		}
 		output += string(c)
 	}
 
 	if !markerPlaced {
-		output += "^^^^^^^^^^"
+		output += marker(charsBeforeError, charsAfterError)
 	}
 
 	return output
+}
+
+func marker(before int, after int) string {
+	before = max(before, 1)
+	s := make([]rune, before+after+1)
+	for i := 0; i < before-1; i++ {
+		s[i] = '-'
+	}
+	s[before-1] = '^'
+	for i := before; i < len(s); i++ {
+		s[i] = '-'
+	}
+	return "\n" + string(s)
 }
