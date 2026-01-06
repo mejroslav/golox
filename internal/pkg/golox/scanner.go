@@ -14,8 +14,8 @@ type CodeScanner struct {
 	line    int
 }
 
-func NewCodeScanner() *CodeScanner {
-	return &CodeScanner{}
+func NewCodeScanner(line int) *CodeScanner {
+	return &CodeScanner{line: line}
 }
 
 // Run scans the provided source code and prints the tokens. It returns true if scanning was successful, false otherwise.
@@ -27,7 +27,6 @@ func (s *CodeScanner) Run(source string, verbose bool) bool {
 	s.source = source
 	s.start = 0
 	s.current = 0
-	s.line = 1
 	s.tokens = []Token{}
 
 	slog.Debug("Starting scan", "source_length", len(source))

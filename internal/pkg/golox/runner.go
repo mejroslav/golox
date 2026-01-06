@@ -29,7 +29,7 @@ func RunFile(path string, verbose bool) error {
 	}
 
 	// Run the code scanner on the loaded source
-	codeScanner := NewCodeScanner()
+	codeScanner := NewCodeScanner(1)
 	scannerHadErrors := codeScanner.Run(source, verbose)
 	if scannerHadErrors {
 		return fmt.Errorf("scanning errors occurred")
@@ -52,7 +52,7 @@ func RunPrompt() {
 		if line == "exit" {
 			break
 		}
-		codeScanner := NewCodeScanner()
+		codeScanner := NewCodeScanner(lineNumber)
 		codeScanner.Run(line, true)
 		lineNumber++
 	}
