@@ -44,29 +44,3 @@ func RunPrompt() {
 		lineNumber++
 	}
 }
-
-func Error(line int, message string) bool {
-	report(line, "", message)
-	return true
-}
-
-func report(line int, where string, message string) {
-	fmt.Printf("[line %d] Error%s: %s\n", line, where, message)
-}
-
-type CodeScanner struct{}
-
-func NewCodeScanner() *CodeScanner {
-	return &CodeScanner{}
-}
-
-func (s *CodeScanner) ScanTokens(source string) []string {
-	// Dummy implementation for illustration
-	return []string{"token1", "token2"}
-}
-
-func (s *CodeScanner) Run() bool {
-	var codeScanner CodeScanner = *NewCodeScanner()
-	codeScanner.ScanTokens("dummy source")
-	return false
-}
