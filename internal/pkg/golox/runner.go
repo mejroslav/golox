@@ -3,26 +3,38 @@ package golox
 import (
 	"bufio"
 	"fmt"
+	"log/slog"
 	"os"
 )
 
 // runFile reads a file line by line and prints each line to stdout.
-func RunFile(path string) error {
+func RunFile(path string, verbose bool) error {
+
+	slog.Info("Running file", "path", path)
 	file, err := os.Open(path)
 	if err != nil {
 		return fmt.Errorf("could not open file: %w", err)
 	}
 	defer file.Close()
 
+	var source string
+
+	// Load the entire file in memory
 	scanner := bufio.NewScanner(file)
-	lineNumber := 1
 	for scanner.Scan() {
-		fmt.Printf("%d: %s\n", lineNumber, scanner.Text())
-		lineNumber++
+		source += scanner.Text() + "\n"
 	}
 	if err := scanner.Err(); err != nil {
 		return fmt.Errorf("error reading file: %w", err)
 	}
+
+	// Run the code scanner on the loaded source
+	codeScanner := NewCodeScanner()
+	scannerHadErrors := codeScanner.Run(source, verbose)
+	if scannerHadErrors {
+		return fmt.Errorf("scanning errors occurred")
+	}
+
 	return nil
 }
 
@@ -40,7 +52,8 @@ func RunPrompt() {
 		if line == "exit" {
 			break
 		}
-		fmt.Printf("%d: %s\n", lineNumber, line)
+		codeScanner := NewCodeScanner()
+		codeScanner.Run(line, true)
 		lineNumber++
 	}
 }

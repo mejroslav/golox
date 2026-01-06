@@ -19,5 +19,8 @@ func NewToken(tokenType TokenType, lexeme string, literal any, line int) Token {
 }
 
 func (t Token) String() string {
-	return string(t.Type) + " " + t.Lexeme + " " + fmt.Sprintf("%v", t.Literal)
+	if t.Type == EOF {
+		return fmt.Sprintf("%d: %s", t.Line, t.Type)
+	}
+	return fmt.Sprintf("%d: %s %s %v", t.Line, t.Type, t.Lexeme, t.Literal)
 }

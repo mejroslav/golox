@@ -1,9 +1,11 @@
-var a = 66;
-var b = 33;
+var sixtySix = 66;
+var thirtyThree = 33;
 
-var c = false;
+var Falsy = false;
 
-if (!c and a / b == 2){
+var pi = 3.14159
+
+if (!Falsy and sixtySix / thirtyThree == 2){
     print "All conditions passed.";
 } else {
     print "Something is wrong!";

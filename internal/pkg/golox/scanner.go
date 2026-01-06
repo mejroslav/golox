@@ -1,8 +1,12 @@
 package golox
 
-import "strconv"
+import (
+	"fmt"
+	"log/slog"
+	"strconv"
+)
 
-type Scanner struct {
+type CodeScanner struct {
 	source  string
 	tokens  []Token
 	start   int
@@ -10,28 +14,48 @@ type Scanner struct {
 	line    int
 }
 
-func NewCodeScanner() *Scanner {
-	return &Scanner{}
+func NewCodeScanner() *CodeScanner {
+	return &CodeScanner{}
 }
 
-func (s *Scanner) Run() bool {
-	var codeScanner Scanner = *NewCodeScanner()
-	codeScanner.ScanTokens("dummy source")
-	return false
-}
+// Run scans the provided source code and prints the tokens. It returns true if scanning was successful, false otherwise.
+// If verbose is true, it prints each token to stdout.
+func (s *CodeScanner) Run(source string, verbose bool) bool {
+	var tokens []Token
+	var hadError bool
 
-func (s *Scanner) ScanTokens(source string) []Token {
 	s.source = source
-	eof := Token{Type: EOF, Lexeme: "", Literal: nil, Line: 0}
-	s.tokens = append(s.tokens, eof)
-	return s.tokens
+	s.start = 0
+	s.current = 0
+	s.line = 1
+	s.tokens = []Token{}
+
+	slog.Debug("Starting scan", "source_length", len(source))
+
+	tokens, hadError = s.ScanTokens()
+
+	if verbose {
+		for _, token := range tokens {
+			fmt.Println(token)
+		}
+	}
+	return hadError
 }
 
-func (s *Scanner) isAtAnd() bool {
-	return s.current >= len(s.source)
+func (s *CodeScanner) ScanTokens() ([]Token, bool) {
+	hadError := false
+	for !s.isAtAnd() {
+		// We are at the beginning of the next lexeme.
+		s.start = s.current
+		s.scanToken()
+	}
+
+	s.addToken(EOF)
+
+	return s.tokens, hadError
 }
 
-func (s *Scanner) scanToken() {
+func (s *CodeScanner) scanToken() {
 	var c rune = s.advance()
 	switch c {
 
@@ -105,23 +129,28 @@ func (s *Scanner) scanToken() {
 	case '\n':
 		s.line++
 
-	// Unexpected character.
 	default:
+		// Here we use the principle of *maximal munch*, trying to consume as many characters as possible.
 		if s.isDigit(c) {
+			// Number literals.
 			s.number()
+		} else if s.isAlpha(c) {
+			// Identifiers and keywords.
+			s.identifier()
 		} else {
+			// Unexpected character.
 			Error(s.line, "Unexpected character.")
 		}
 
 	}
 }
 
-func (s *Scanner) addToken(tokenType TokenType) {
+func (s *CodeScanner) addToken(tokenType TokenType) {
 	text := s.source[s.start:s.current]
 	s.tokens = append(s.tokens, NewToken(tokenType, text, nil, s.line))
 }
 
-func (s *Scanner) addTokenWithValue(tokenType TokenType, value any) {
+func (s *CodeScanner) addTokenWithValue(tokenType TokenType, value any) {
 	text := s.source[s.start:s.current]
 	s.tokens = append(s.tokens, NewToken(tokenType, text, value, s.line))
 }
@@ -129,7 +158,7 @@ func (s *Scanner) addTokenWithValue(tokenType TokenType, value any) {
 // string handles string literals, consuming characters until the closing quote is found.
 //
 // It also supports multi-line strings.
-func (s *Scanner) string() {
+func (s *CodeScanner) string() {
 	for s.peek() != '"' && !s.isAtAnd() {
 		if s.peek() == '\n' {
 			// Strings can span multiple lines, so we need to increment the line counter.
@@ -152,7 +181,7 @@ func (s *Scanner) string() {
 }
 
 // number handles numeric literals. It supports both integer and floating-point numbers.
-func (s *Scanner) number() {
+func (s *CodeScanner) number() {
 	for s.isDigit(s.peek()) {
 		s.advance()
 	}
@@ -175,17 +204,45 @@ func (s *Scanner) number() {
 	s.addTokenWithValue(NUMBER, value)
 }
 
-func (s *Scanner) isDigit(c rune) bool {
+// identifier handles identifiers and keywords.
+func (s *CodeScanner) identifier() {
+	for s.isAlphaNumeric(s.peek()) {
+		s.advance()
+	}
+
+	text := s.source[s.start:s.current]
+	tokenType, exists := keywords[text]
+	if !exists {
+		tokenType = IDENTIFIER
+	}
+
+	s.addToken(tokenType)
+}
+
+func (s *CodeScanner) isDigit(c rune) bool {
 	return c >= '0' && c <= '9'
 }
 
-func (s *Scanner) advance() rune {
+func (s *CodeScanner) isAlpha(c rune) bool {
+	return (c >= 'a' && c <= 'z') ||
+		(c >= 'A' && c <= 'Z') ||
+		c == '_'
+}
+
+func (s *CodeScanner) isAlphaNumeric(c rune) bool {
+	return s.isAlpha(c) || s.isDigit(c)
+}
+
+// advance consumes the current character and returns it.
+func (s *CodeScanner) advance() rune {
 	c := s.charAt(s.current)
 	s.current++
 	return c
 }
 
-func (s *Scanner) match(expected rune) bool {
+// match checks if the current character matches the expected character.
+// If it does, it consumes the character and returns true. Otherwise, it returns false.
+func (s *CodeScanner) match(expected rune) bool {
 	if s.isAtAnd() {
 		return false
 	}
@@ -196,7 +253,8 @@ func (s *Scanner) match(expected rune) bool {
 	return true
 }
 
-func (s *Scanner) peek() rune {
+// peek returns the current character without consuming it.
+func (s *CodeScanner) peek() rune {
 	if s.isAtAnd() {
 		return '\000'
 	} else {
@@ -204,7 +262,8 @@ func (s *Scanner) peek() rune {
 	}
 }
 
-func (s *Scanner) peekNext() rune {
+// peekNext returns the character after the current one without consuming it.
+func (s *CodeScanner) peekNext() rune {
 	if s.current+1 >= len(s.source) {
 		return '\000'
 	} else {
@@ -212,6 +271,11 @@ func (s *Scanner) peekNext() rune {
 	}
 }
 
-func (s *Scanner) charAt(index int) rune {
+// charAt returns the character at the specified index.
+func (s *CodeScanner) charAt(index int) rune {
 	return rune(s.source[index])
+}
+
+func (s *CodeScanner) isAtAnd() bool {
+	return s.current >= len(s.source)
 }
