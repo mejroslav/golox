@@ -1,0 +1,47 @@
+package golox
+
+type Expr interface {
+	Accept(visitor ExprVisitor) any
+}
+
+type ExprVisitor interface {
+	VisitBinaryExpr(expr *Binary) any
+	VisitGroupingExpr(expr *Grouping) any
+	VisitLiteralExpr(expr *Literal) any
+	VisitUnaryExpr(expr *Unary) any
+}
+
+type Binary struct {
+	Left     Expr
+	Operator *Token
+	Right    Expr
+}
+
+func (node *Binary) Accept(visitor ExprVisitor) any {
+	return visitor.VisitBinaryExpr(node)
+}
+
+type Grouping struct {
+	Expression Expr
+}
+
+func (node *Grouping) Accept(visitor ExprVisitor) any {
+	return visitor.VisitGroupingExpr(node)
+}
+
+type Literal struct {
+	Value any
+}
+
+func (node *Literal) Accept(visitor ExprVisitor) any {
+	return visitor.VisitLiteralExpr(node)
+}
+
+type Unary struct {
+	Operator *Token
+	Right    Expr
+}
+
+func (node *Unary) Accept(visitor ExprVisitor) any {
+	return visitor.VisitUnaryExpr(node)
+}
