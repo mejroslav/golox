@@ -1,0 +1,5 @@
+print "Hello, world!";
+
+// This is how we write comments in LOX
+
+print "Goodbye!";

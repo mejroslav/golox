@@ -1,0 +1,10 @@
+var a = 66;
+var b = 33;
+
+var c = false;
+
+if (!c and a / b == 2){
+    print "All conditions passed.";
+} else {
+    print "Something is wrong!";
+}
