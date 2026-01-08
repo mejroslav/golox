@@ -21,24 +21,13 @@ func NewCodeScanner(line int, file string) *CodeScanner {
 
 // Run scans the provided source code and prints the tokens. It returns true if scanning was successful, false otherwise.
 // If verbose is true, it prints each token to stdout.
-func (s *CodeScanner) Run(source string, verbose bool) bool {
-	var tokens []Token
-	var hadError bool
-
+func (s *CodeScanner) Run(source string) ([]Token, bool) {
 	s.source = source
 	s.start = 0
 	s.current = 0
 	s.tokens = []Token{}
 	slog.Debug("Starting scan", "file", s.file, "length", len(s.source))
-
-	tokens, hadError = s.ScanTokens()
-
-	if verbose {
-		for _, token := range tokens {
-			fmt.Println(token)
-		}
-	}
-	return hadError
+	return s.ScanTokens()
 }
 
 func (s *CodeScanner) ScanTokens() ([]Token, bool) {

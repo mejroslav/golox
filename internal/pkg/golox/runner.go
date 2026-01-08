@@ -8,7 +8,7 @@ import (
 )
 
 // runFile reads a file line by line and prints each line to stdout.
-func RunFile(path string, verbose bool) error {
+func RunFile(path string, showTokens bool, showAST bool) error {
 
 	slog.Info("Running file", "path", path)
 	file, err := os.Open(path)
@@ -30,14 +30,37 @@ func RunFile(path string, verbose bool) error {
 
 	// Run the code scanner on the loaded source
 	codeScanner := NewCodeScanner(1, path)
-	scannerHadErrors := codeScanner.Run(source, verbose)
-	if scannerHadErrors {
+	tokens, scanErr := codeScanner.Run(source)
+	if scanErr {
 		return fmt.Errorf("scanning errors occurred")
 	}
 
+	if showTokens {
+		fmt.Println("Tokens:")
+		for _, token := range tokens {
+			fmt.Println(token)
+		}
+		fmt.Println()
+	}
+
+	// Run the parser on the tokens
+	parser := NewParser(tokens)
+	expression, parseErr := parser.Parse()
+	if parseErr != nil {
+		return fmt.Errorf("parsing errors occurred: %w", parseErr)
+	}
+
+	if showAST {
+		astPrinter := NewASTPrinter()
+		astStr := astPrinter.Print(expression)
+		fmt.Println("AST:")
+		fmt.Println(astStr)
+		fmt.Println()
+	}
 	return nil
 }
 
+// TODO: Fix the error handling and reporting in the REPL
 // RunPrompt starts a REPL that reads lines from stdin and echoes them back.
 func RunPrompt() {
 	scanner := bufio.NewScanner(os.Stdin)
@@ -53,7 +76,7 @@ func RunPrompt() {
 			break
 		}
 		codeScanner := NewCodeScanner(lineNumber, "<stdin>")
-		codeScanner.Run(line, true)
+		codeScanner.Run(line)
 		lineNumber++
 	}
 }

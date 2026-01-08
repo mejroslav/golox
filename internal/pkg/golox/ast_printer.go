@@ -4,6 +4,10 @@ import "fmt"
 
 type AstPrinter struct{}
 
+func NewASTPrinter() *AstPrinter {
+	return &AstPrinter{}
+}
+
 func (a *AstPrinter) Print(expr Expr) string {
 	return expr.Accept(a).(string)
 }

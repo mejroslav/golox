@@ -22,9 +22,9 @@ type ParserError struct {
 // ParserError reports an error encountered during parsing
 func (p ParserError) Error() string {
 	if p.Token.Type == EOF {
-		return p.report(p.Token.Line, " at end", p.Message)
+		return p.report(p.Token.Line, "at end", p.Message)
 	} else {
-		return p.report(p.Token.Line, " at '"+p.Token.Lexeme+"'", p.Message)
+		return p.report(p.Token.Line, "at '"+p.Token.Lexeme+"'", p.Message)
 	}
 }
 

@@ -14,8 +14,9 @@ func Main() {
 
 	// Define flags
 	help := flag.Bool("help", false, "Show help message and exit")
-	verbose := flag.Bool("verbose", false, "Enable verbose output")
-	// Add more flags here as needed
+	logLevel := flag.String("log-level", "info", "Set the logging level (debug, info, warn, error)")
+	showTokens := flag.Bool("show-tokens", false, "Display tokens during scanning")
+	showAST := flag.Bool("show-ast", false, "Display AST after parsing")
 
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(), "golox - Lox language interpreter in Go\n")
@@ -31,14 +32,19 @@ func Main() {
 		os.Exit(0)
 	}
 
-	level := slog.LevelInfo
-	if *verbose {
-		fmt.Println("Verbose mode enabled")
-		level = slog.LevelDebug
-	} else {
-		fmt.Println("Verbose mode disabled")
+	// Logging setup
+	loggerMap := map[string]slog.Level{
+		"debug": slog.LevelDebug,
+		"info":  slog.LevelInfo,
+		"warn":  slog.LevelWarn,
+		"error": slog.LevelError,
 	}
 
+	level, exists := loggerMap[*logLevel]
+	if !exists {
+		fmt.Fprintf(os.Stderr, "Invalid log level: %s\n", *logLevel)
+		os.Exit(1)
+	}
 	slog.SetDefault(slog.New(tint.NewHandler(os.Stderr, &tint.Options{
 		Level:      level,
 		TimeFormat: "2006-01-02 15:04:05.000",
@@ -50,8 +56,9 @@ func Main() {
 		RunPrompt()
 		os.Exit(0)
 	}
+
 	filePath := args[0]
-	if err := RunFile(filePath, *verbose); err != nil {
+	if err := RunFile(filePath, *showTokens, *showAST); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}

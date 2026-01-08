@@ -158,7 +158,6 @@ func (p *Parser) consume(t TokenType, message string) (Token, error) {
 	if p.check(t) {
 		return p.advance(), nil
 	}
-	// Error handling would go here in a complete implementation
 	return Token{}, ParserError{Token: p.peek(), Message: message}
 }
 
