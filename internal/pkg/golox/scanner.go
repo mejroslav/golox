@@ -138,9 +138,14 @@ func (s *CodeScanner) scanToken() {
 			s.identifier()
 		} else {
 			// Unexpected character.
-			Error(s.file, s.line, s.getContextLines(), fmt.Sprintf("Unexpected character '%c'.", c))
+			err := ScannerError{
+				File:    s.file,
+				Line:    s.line,
+				Context: s.getContextLines(),
+				Message: fmt.Sprintf("Unexpected character '%c'.", c),
+			}
+			fmt.Println(err.Error())
 		}
-
 	}
 }
 
@@ -167,7 +172,13 @@ func (s *CodeScanner) string() {
 	}
 
 	if s.isAtEnd() {
-		Error(s.file, s.line, s.getContextLines(), "Unterminated string.")
+		err := ScannerError{
+			File:    s.file,
+			Line:    s.line,
+			Context: s.getContextLines(),
+			Message: "Unterminated string.",
+		}
+		fmt.Println(err.Error())
 		return
 	} else {
 		// The closing ".
@@ -197,7 +208,13 @@ func (s *CodeScanner) number() {
 
 	value, err := strconv.ParseFloat(s.source[s.start:s.current], 64)
 	if err != nil {
-		Error(s.file, s.line, s.getContextLines(), "Invalid number format: "+err.Error())
+		err := ScannerError{
+			File:    s.file,
+			Line:    s.line,
+			Context: s.getContextLines(),
+			Message: "Invalid number format: " + err.Error(),
+		}
+		fmt.Println(err.Error())
 		return
 	}
 	s.addTokenWithValue(NUMBER, value)
