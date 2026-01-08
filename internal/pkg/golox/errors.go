@@ -22,12 +22,12 @@ type ParserError struct {
 // ParserError reports an error encountered during parsing
 func (p ParserError) Error() string {
 	if p.Token.Type == EOF {
-		return p.report(p.Token.Line, "at end", p.Message)
+		return parserErrorMsg(p.Token.File, p.Token.Line, "at end", p.Message)
 	} else {
-		return p.report(p.Token.Line, "at '"+p.Token.Lexeme+"'", p.Message)
+		return parserErrorMsg(p.Token.File, p.Token.Line, "at '"+p.Token.Lexeme+"'", p.Message)
 	}
 }
 
-func (p ParserError) report(line int, where string, message string) string {
-	return fmt.Sprintf("PARSER ERROR [line %d] %s: %s\n", line, where, message)
+func parserErrorMsg(file string, line int, where string, message string) string {
+	return fmt.Sprintf("PARSER ERROR [%s:%d] %s: %s\n", file, line, where, message)
 }

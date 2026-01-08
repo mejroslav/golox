@@ -140,12 +140,12 @@ func (s *CodeScanner) scanToken() {
 
 func (s *CodeScanner) addToken(tokenType TokenType) {
 	text := s.source[s.start:s.current]
-	s.tokens = append(s.tokens, NewToken(tokenType, text, nil, s.line))
+	s.tokens = append(s.tokens, NewToken(tokenType, text, nil, s.file, s.line))
 }
 
 func (s *CodeScanner) addTokenWithValue(tokenType TokenType, value any) {
 	text := s.source[s.start:s.current]
-	s.tokens = append(s.tokens, NewToken(tokenType, text, value, s.line))
+	s.tokens = append(s.tokens, NewToken(tokenType, text, value, s.file, s.line))
 }
 
 // string handles string literals, consuming characters until the closing quote is found.
