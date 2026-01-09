@@ -31,3 +31,19 @@ func (p ParserError) Error() string {
 func parserErrorMsg(file string, line int, where string, message string) string {
 	return fmt.Sprintf("PARSER ERROR [%s:%d] %s: %s\n", file, line, where, message)
 }
+
+type RuntimeError struct {
+	Token   Token
+	Message string
+}
+
+func NewRuntimeError(token Token, message string) RuntimeError {
+	return RuntimeError{
+		Token:   token,
+		Message: message,
+	}
+}
+
+func (r RuntimeError) Error() string {
+	return fmt.Sprintf("RUNTIME ERROR [%s:%d] %s\n", r.Token.File, r.Token.Line, r.Message)
+}

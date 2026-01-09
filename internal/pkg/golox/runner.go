@@ -57,6 +57,13 @@ func RunFile(path string, showTokens bool, showAST bool) error {
 		fmt.Println(astStr)
 		fmt.Println()
 	}
+
+	interpreter := NewInterpreter()
+	result, interpretErr := interpreter.Interpret(expression)
+	if interpretErr != nil {
+		return fmt.Errorf("interpretation error: %w", interpretErr)
+	}
+	fmt.Println(result)
 	return nil
 }
 
