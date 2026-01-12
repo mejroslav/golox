@@ -3,14 +3,14 @@
 package golox
 
 type Expr interface {
-	Accept(visitor ExprVisitor) any
+	Accept(visitor ExprVisitor) (any, error)
 }
 
 type ExprVisitor interface {
-	VisitBinaryExpr(expr *Binary) any
-	VisitGroupingExpr(expr *Grouping) any
-	VisitLiteralExpr(expr *Literal) any
-	VisitUnaryExpr(expr *Unary) any
+	VisitBinaryExpr(expr *Binary) (any, error)
+	VisitGroupingExpr(expr *Grouping) (any, error)
+	VisitLiteralExpr(expr *Literal) (any, error)
+	VisitUnaryExpr(expr *Unary) (any, error)
 }
 
 type Binary struct {
@@ -19,7 +19,7 @@ type Binary struct {
 	Right    Expr
 }
 
-func (node *Binary) Accept(visitor ExprVisitor) any {
+func (node *Binary) Accept(visitor ExprVisitor) (any, error) {
 	return visitor.VisitBinaryExpr(node)
 }
 
@@ -27,7 +27,7 @@ type Grouping struct {
 	Expression Expr
 }
 
-func (node *Grouping) Accept(visitor ExprVisitor) any {
+func (node *Grouping) Accept(visitor ExprVisitor) (any, error) {
 	return visitor.VisitGroupingExpr(node)
 }
 
@@ -35,7 +35,7 @@ type Literal struct {
 	Value any
 }
 
-func (node *Literal) Accept(visitor ExprVisitor) any {
+func (node *Literal) Accept(visitor ExprVisitor) (any, error) {
 	return visitor.VisitLiteralExpr(node)
 }
 
@@ -44,6 +44,6 @@ type Unary struct {
 	Right    Expr
 }
 
-func (node *Unary) Accept(visitor ExprVisitor) any {
+func (node *Unary) Accept(visitor ExprVisitor) (any, error) {
 	return visitor.VisitUnaryExpr(node)
 }
