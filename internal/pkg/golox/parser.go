@@ -2,17 +2,59 @@ package golox
 
 // Parser implements a recursive descent parser for the Lox language
 type Parser struct {
-	tokens  []Token
-	current int
+	tokens     []Token
+	statements []Stmt
+	current    int
 }
 
 func NewParser(tokens []Token) *Parser {
-	return &Parser{tokens: tokens, current: 0}
+	return &Parser{tokens: tokens, statements: []Stmt{}, current: 0}
 }
 
 // Parse parses the list of tokens and returns the resulting expression or an error
-func (p *Parser) Parse() (Expr, error) {
-	return p.expression()
+func (p *Parser) Parse() ([]Stmt, error) {
+	for !p.isAtEnd() {
+		statement, err := p.statement()
+		if err != nil {
+			return nil, err
+		}
+		p.statements = append(p.statements, statement)
+	}
+	return p.statements, nil
+}
+
+// statement -> printStmt | expressionStmt ;
+func (p *Parser) statement() (Stmt, error) {
+	if p.match(PRINT) {
+		return p.printStatement()
+	}
+	return p.expressionStatement()
+}
+
+// printStmt -> "print" expression ";" ;
+func (p *Parser) printStatement() (Stmt, error) {
+	value, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+	_, err = p.consume(SEMICOLON, "Expect ';' after value.")
+	if err != nil {
+		return nil, err
+	}
+	return &Print{Expression: value}, nil
+}
+
+// expressionStmt -> expression ";" ;
+func (p *Parser) expressionStatement() (Stmt, error) {
+	expr, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+	_, err = p.consume(SEMICOLON, "Expect ';' after expression.")
+	if err != nil {
+		return nil, err
+	}
+	return &Expression{Expression: expr}, nil
 }
 
 // expression -> equality ;

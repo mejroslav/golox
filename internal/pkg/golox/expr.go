@@ -14,9 +14,9 @@ type ExprVisitor interface {
 }
 
 type Binary struct {
-	Left     Expr
+	Left Expr
 	Operator *Token
-	Right    Expr
+	Right Expr
 }
 
 func (node *Binary) Accept(visitor ExprVisitor) (any, error) {
@@ -41,9 +41,10 @@ func (node *Literal) Accept(visitor ExprVisitor) (any, error) {
 
 type Unary struct {
 	Operator *Token
-	Right    Expr
+	Right Expr
 }
 
 func (node *Unary) Accept(visitor ExprVisitor) (any, error) {
 	return visitor.VisitUnaryExpr(node)
 }
+

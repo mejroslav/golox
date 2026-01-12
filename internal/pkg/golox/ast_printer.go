@@ -8,9 +8,8 @@ func NewASTPrinter() *AstPrinter {
 	return &AstPrinter{}
 }
 
-func (a *AstPrinter) Print(expr Expr) string {
-	expr.Accept(a)
-	result, _ := expr.Accept(a)
+func (a *AstPrinter) Print(statement Stmt) string {
+	result, _ := statement.Accept(a)
 	return result.(string)
 }
 
@@ -31,6 +30,14 @@ func (a *AstPrinter) VisitLiteralExpr(expr *Literal) (any, error) {
 
 func (a *AstPrinter) VisitUnaryExpr(expr *Unary) (any, error) {
 	return a.parenthesize(expr.Operator.Lexeme, expr.Right)
+}
+
+func (a *AstPrinter) VisitExpressionStmt(expr *Expression) (any, error) {
+	return a.parenthesize("expr", expr.Expression)
+}
+
+func (a *AstPrinter) VisitPrintStmt(expr *Print) (any, error) {
+	return a.parenthesize("print", expr.Expression)
 }
 
 func (a *AstPrinter) parenthesize(name string, exprs ...Expr) (string, error) {

@@ -1,2 +1,4 @@
 
-( 13 + 27)/0 + "Hello"
+print "Hello world";
+
+print 66 / 2;

@@ -9,12 +9,22 @@ func NewInterpreter() *Interpreter {
 	return &Interpreter{}
 }
 
-func (i *Interpreter) Interpret(expr Expr) (any, error) {
-	result, err := i.evaluate(expr)
-	if err != nil {
-		return nil, err
+func (i *Interpreter) Interpret(statements []Stmt) (any, error) {
+	for _, stmt := range statements {
+		_, err := i.execute(stmt)
+		if err != nil {
+			return nil, err
+		}
 	}
-	return result, nil
+	return nil, nil
+}
+
+func (i *Interpreter) execute(stmt Stmt) (any, error) {
+	return stmt.Accept(i)
+}
+
+func (i *Interpreter) evaluate(expr Expr) (any, error) {
+	return expr.Accept(i)
 }
 
 func (i *Interpreter) VisitLiteralExpr(e *Literal) (any, error) {
@@ -23,10 +33,6 @@ func (i *Interpreter) VisitLiteralExpr(e *Literal) (any, error) {
 
 func (i *Interpreter) VisitGroupingExpr(e *Grouping) (any, error) {
 	return i.evaluate(e.Expression)
-}
-
-func (i *Interpreter) evaluate(expr Expr) (any, error) {
-	return expr.Accept(i)
 }
 
 func (i *Interpreter) VisitUnaryExpr(e *Unary) (any, error) {
@@ -106,6 +112,19 @@ func (i *Interpreter) VisitBinaryExpr(e *Binary) (any, error) {
 	return nil, nil
 }
 
+func (i *Interpreter) VisitExpressionStmt(e *Expression) (any, error) {
+	return i.evaluate(e.Expression)
+}
+
+func (i *Interpreter) VisitPrintStmt(e *Print) (any, error) {
+	value, err := i.evaluate(e.Expression)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(stringify(value))
+	return nil, nil
+}
+
 func isEqual(a, b any) bool {
 	if a == nil && b == nil {
 		return true
@@ -124,6 +143,29 @@ func isTruthy(object any) bool {
 		return b
 	}
 	return true
+}
+
+func stringify(object any) string {
+	if object == nil {
+		return "nil"
+	}
+	switch v := object.(type) {
+	case float64:
+		s := fmt.Sprintf("%v", v)
+		if s[len(s)-2:] == ".0" {
+			s = s[:len(s)-2]
+		}
+		return s
+	case bool:
+		if v {
+			return "true"
+		}
+		return "false"
+	case string:
+		return v
+	default:
+		return fmt.Sprintf("%v", v)
+	}
 }
 
 // checkFloat64Operand checks if the operand is float64, returns an error if not.
