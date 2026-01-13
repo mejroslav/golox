@@ -56,8 +56,8 @@ func RunFile(path string, showTokens bool, showAST bool) error {
 		for _, stmt := range statements {
 			astStr := astPrinter.Print(stmt)
 			fmt.Println(astStr)
-			fmt.Println()
 		}
+		fmt.Println()
 	}
 
 	interpreter := NewInterpreter()

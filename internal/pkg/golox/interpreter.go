@@ -8,7 +8,7 @@ type Interpreter struct {
 
 func NewInterpreter() *Interpreter {
 	return &Interpreter{
-		environment: NewEnvironment(),
+		environment: NewEnvironment(nil),
 	}
 }
 
@@ -156,6 +156,25 @@ func (i *Interpreter) VisitAssignExpr(e *Assign) (any, error) {
 	}
 	return value, nil
 }
+
+func (i *Interpreter) VisitBlockStmt(stmt *Block) (any, error) {
+	previous := i.environment
+	i.environment = NewEnvironment(previous)
+	defer func() {
+		i.environment = previous
+	}()
+
+	for _, statement := range stmt.Statements {
+		_, err := i.execute(statement)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return nil, nil
+}
+
+// ---------------------------------------------------------------------
+// Helpers
 
 func isEqual(a, b any) bool {
 	if a == nil && b == nil {

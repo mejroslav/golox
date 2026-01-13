@@ -14,6 +14,7 @@ def generate_ast(output_dir: str) -> str:
     ])
 
     define_ast(output_dir, "stmt", [
+        "Block     : Statements []Stmt",
         "Expression : Expression Expr",
         "Print     : Expression Expr",
         "Var       : Name Token, Initializer Expr",

@@ -7,9 +7,18 @@ type Stmt interface {
 }
 
 type StmtVisitor interface {
+	VisitBlockStmt(stmt *Block) (any, error)
 	VisitExpressionStmt(stmt *Expression) (any, error)
 	VisitPrintStmt(stmt *Print) (any, error)
 	VisitVarStmt(stmt *Var) (any, error)
+}
+
+type Block struct {
+	Statements []Stmt
+}
+
+func (node *Block) Accept(visitor StmtVisitor) (any, error) {
+	return visitor.VisitBlockStmt(node)
 }
 
 type Expression struct {

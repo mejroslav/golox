@@ -14,11 +14,11 @@ func (a *AstPrinter) Print(statement Stmt) string {
 }
 
 func (a *AstPrinter) VisitBinaryExpr(expr *Binary) (any, error) {
-	return a.parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right)
+	return a.parenthesizeExprs(expr.Operator.Lexeme, expr.Left, expr.Right)
 }
 
 func (a *AstPrinter) VisitGroupingExpr(expr *Grouping) (any, error) {
-	return a.parenthesize("group", expr.Expression)
+	return a.parenthesizeExprs("group", expr.Expression)
 }
 
 func (a *AstPrinter) VisitLiteralExpr(expr *Literal) (any, error) {
@@ -29,22 +29,22 @@ func (a *AstPrinter) VisitLiteralExpr(expr *Literal) (any, error) {
 }
 
 func (a *AstPrinter) VisitUnaryExpr(expr *Unary) (any, error) {
-	return a.parenthesize(expr.Operator.Lexeme, expr.Right)
+	return a.parenthesizeExprs(expr.Operator.Lexeme, expr.Right)
 }
 
 func (a *AstPrinter) VisitExpressionStmt(expr *Expression) (any, error) {
-	return a.parenthesize("expr", expr.Expression)
+	return a.parenthesizeExprs("expr", expr.Expression)
 }
 
 func (a *AstPrinter) VisitPrintStmt(expr *Print) (any, error) {
-	return a.parenthesize("print", expr.Expression)
+	return a.parenthesizeExprs("print", expr.Expression)
 }
 
 func (a *AstPrinter) VisitVarStmt(stmt *Var) (any, error) {
 	if stmt.Initializer != nil {
-		return a.parenthesize("var "+stmt.Name.Lexeme, stmt.Initializer)
+		return a.parenthesizeExprs("var "+stmt.Name.Lexeme, stmt.Initializer)
 	}
-	return a.parenthesize("var " + stmt.Name.Lexeme)
+	return "(var " + stmt.Name.Lexeme + ")", nil
 }
 
 func (a *AstPrinter) VisitVariableExpr(expr *Variable) (any, error) {
@@ -52,13 +52,27 @@ func (a *AstPrinter) VisitVariableExpr(expr *Variable) (any, error) {
 }
 
 func (a *AstPrinter) VisitAssignExpr(expr *Assign) (any, error) {
-	return a.parenthesize("assign "+expr.Name.Lexeme, expr.Value)
+	return a.parenthesizeExprs("assign "+expr.Name.Lexeme, expr.Value)
 }
 
-func (a *AstPrinter) parenthesize(name string, exprs ...Expr) (string, error) {
+func (a *AstPrinter) VisitBlockStmt(stmt *Block) (any, error) {
+	return a.parenthesizeStmts("block", stmt.Statements...)
+}
+
+func (a *AstPrinter) parenthesizeExprs(name string, exprs ...Expr) (string, error) {
 	result := "(" + name
 	for _, expr := range exprs {
 		subResult, _ := expr.Accept(a)
+		result += " " + subResult.(string)
+	}
+	result += ")"
+	return result, nil
+}
+
+func (a *AstPrinter) parenthesizeStmts(name string, stmts ...Stmt) (string, error) {
+	result := "(" + name
+	for _, stmt := range stmts {
+		subResult, _ := stmt.Accept(a)
 		result += " " + subResult.(string)
 	}
 	result += ")"
