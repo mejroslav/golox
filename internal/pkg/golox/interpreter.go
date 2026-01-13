@@ -165,6 +165,13 @@ func isTruthy(object any) bool {
 	return true
 }
 
+// stringify converts an object to its string representation.
+//
+// For nil, it returns "nil".
+// For float64, it removes the decimal part if it's zero.
+// For bool, it returns "true" or "false".
+// For string, it returns the string itself.
+// For other types, it uses fmt.Sprintf to convert to string.
 func stringify(object any) string {
 	if object == nil {
 		return "nil"
