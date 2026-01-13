@@ -51,6 +51,10 @@ func (a *AstPrinter) VisitVariableExpr(expr *Variable) (any, error) {
 	return expr.Name.Lexeme, nil
 }
 
+func (a *AstPrinter) VisitAssignExpr(expr *Assign) (any, error) {
+	return a.parenthesize("assign "+expr.Name.Lexeme, expr.Value)
+}
+
 func (a *AstPrinter) parenthesize(name string, exprs ...Expr) (string, error) {
 	result := "(" + name
 	for _, expr := range exprs {

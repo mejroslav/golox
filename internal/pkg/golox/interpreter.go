@@ -142,7 +142,19 @@ func (i *Interpreter) VisitVarStmt(e *Var) (any, error) {
 }
 
 func (i *Interpreter) VisitVariableExpr(e *Variable) (any, error) {
-	return i.environment.Get(&e.Name)
+	return i.environment.Get(e.Name)
+}
+
+func (i *Interpreter) VisitAssignExpr(e *Assign) (any, error) {
+	value, err := i.evaluate(e.Value)
+	if err != nil {
+		return nil, err
+	}
+	err = i.environment.Assign(e.Name, value)
+	if err != nil {
+		return nil, err
+	}
+	return value, nil
 }
 
 func isEqual(a, b any) bool {

@@ -23,6 +23,41 @@ func (p *Parser) Parse() ([]Stmt, error) {
 	return p.statements, nil
 }
 
+// expression -> assignment ;
+func (p *Parser) expression() (Expr, error) {
+	return p.assignment()
+}
+
+// assignment -> IDENTIFIER "=" assignment | equality ;
+func (p *Parser) assignment() (Expr, error) {
+	expr, err := p.equality()
+	if err != nil {
+		return nil, err
+	}
+
+	if p.match(EQUAL) {
+		// Every valid assignment target happens to also be valid syntax as a normal expression
+		equals := p.previous()
+		value, err := p.assignment()
+		if err != nil {
+			return nil, err
+		}
+
+		if variable, ok := expr.(*Variable); ok {
+			name := variable.Name
+			return &Assign{Name: name, Value: value}, nil
+		}
+
+		// TODO: We want to report the error, but continue parsing
+		return nil, ParserError{
+			Token:   *equals,
+			Message: "Invalid assignment target.",
+		}
+	}
+
+	return expr, nil
+}
+
 // declaration -> varDecl | statement ;
 func (p *Parser) declaration() (Stmt, error) {
 	if p.match(VAR) {
@@ -51,7 +86,7 @@ func (p *Parser) varDeclaration() (Stmt, error) {
 		return nil, err
 	}
 
-	return &Var{Name: &nameToken, Initializer: initializer}, nil
+	return &Var{Name: nameToken, Initializer: initializer}, nil
 }
 
 // statement -> printStmt | expressionStmt ;
@@ -88,11 +123,6 @@ func (p *Parser) expressionStatement() (Stmt, error) {
 	return &Expression{Expression: expr}, nil
 }
 
-// expression -> equality ;
-func (p *Parser) expression() (Expr, error) {
-	return p.equality()
-}
-
 // equality -> comparison ( ( "!=" | "==" ) comparison )* ;
 func (p *Parser) equality() (Expr, error) {
 	expr, err := p.comparison()
@@ -106,7 +136,7 @@ func (p *Parser) equality() (Expr, error) {
 		if err != nil {
 			return nil, err
 		}
-		expr = &Binary{Left: expr, Operator: &operator, Right: right}
+		expr = &Binary{Left: expr, Operator: operator, Right: right}
 	}
 
 	return expr, nil
@@ -125,7 +155,7 @@ func (p *Parser) comparison() (Expr, error) {
 		if err != nil {
 			return nil, err
 		}
-		expr = &Binary{Left: expr, Operator: &operator, Right: right}
+		expr = &Binary{Left: expr, Operator: operator, Right: right}
 	}
 
 	return expr, nil
@@ -144,7 +174,7 @@ func (p *Parser) term() (Expr, error) {
 		if err != nil {
 			return nil, err
 		}
-		expr = &Binary{Left: expr, Operator: &operator, Right: right}
+		expr = &Binary{Left: expr, Operator: operator, Right: right}
 	}
 
 	return expr, nil
@@ -163,7 +193,7 @@ func (p *Parser) factor() (Expr, error) {
 		if err != nil {
 			return nil, err
 		}
-		expr = &Binary{Left: expr, Operator: &operator, Right: right}
+		expr = &Binary{Left: expr, Operator: operator, Right: right}
 	}
 
 	return expr, nil
@@ -177,7 +207,7 @@ func (p *Parser) unary() (Expr, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &Unary{Operator: &operator, Right: right}, nil
+		return &Unary{Operator: operator, Right: right}, nil
 	}
 
 	return p.primary()
@@ -210,7 +240,7 @@ func (p *Parser) primary() (Expr, error) {
 	}
 
 	err := ParserError{
-		Token:   p.peek(),
+		Token:   *p.peek(),
 		Message: "Expect expression.",
 	}
 	return nil, err
@@ -232,9 +262,9 @@ func (p *Parser) match(types ...TokenType) bool {
 // consume checks that the current token is of the expected type and advances
 func (p *Parser) consume(t TokenType, message string) (Token, error) {
 	if p.check(t) {
-		return p.advance(), nil
+		return *p.advance(), nil
 	}
-	return Token{}, ParserError{Token: p.peek(), Message: message}
+	return Token{}, ParserError{Token: *p.peek(), Message: message}
 }
 
 // check checks if the current token is of the given type
@@ -246,7 +276,7 @@ func (p *Parser) check(t TokenType) bool {
 }
 
 // advance moves to the next token and returns the previous one
-func (p *Parser) advance() Token {
+func (p *Parser) advance() *Token {
 	if !p.isAtEnd() {
 		p.current++
 	}
@@ -259,13 +289,13 @@ func (p *Parser) isAtEnd() bool {
 }
 
 // peek returns the current token
-func (p *Parser) peek() Token {
-	return p.tokens[p.current]
+func (p *Parser) peek() *Token {
+	return &p.tokens[p.current]
 }
 
 // previous returns the most recently consumed token
-func (p *Parser) previous() Token {
-	return p.tokens[p.current-1]
+func (p *Parser) previous() *Token {
+	return &p.tokens[p.current-1]
 }
 
 // Recovery method to synchronize the parser after an error

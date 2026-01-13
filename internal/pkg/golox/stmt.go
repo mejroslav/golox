@@ -29,7 +29,7 @@ func (node *Print) Accept(visitor StmtVisitor) (any, error) {
 }
 
 type Var struct {
-	Name *Token
+	Name Token
 	Initializer Expr
 }
 

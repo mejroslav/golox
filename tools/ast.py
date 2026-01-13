@@ -10,6 +10,7 @@ def generate_ast(output_dir: str) -> str:
         "Literal  : Value any",
         "Unary    : Operator *Token, Right Expr",
         "Variable : Name *Token",
+        "Assign   : Name *Token, Value Expr",
     ])
 
     define_ast(output_dir, "stmt", [
