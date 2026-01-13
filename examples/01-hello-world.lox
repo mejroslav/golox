@@ -2,4 +2,8 @@ print "Hello, world!";
 
 // This is how we write comments in LOX
 
+var a = 1;
+var b = 2;
+
+print a + b;
 print "Goodbye!";

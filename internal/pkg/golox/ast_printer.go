@@ -40,6 +40,17 @@ func (a *AstPrinter) VisitPrintStmt(expr *Print) (any, error) {
 	return a.parenthesize("print", expr.Expression)
 }
 
+func (a *AstPrinter) VisitVarStmt(stmt *Var) (any, error) {
+	if stmt.Initializer != nil {
+		return a.parenthesize("var "+stmt.Name.Lexeme, stmt.Initializer)
+	}
+	return a.parenthesize("var " + stmt.Name.Lexeme)
+}
+
+func (a *AstPrinter) VisitVariableExpr(expr *Variable) (any, error) {
+	return expr.Name.Lexeme, nil
+}
+
 func (a *AstPrinter) parenthesize(name string, exprs ...Expr) (string, error) {
 	result := "(" + name
 	for _, expr := range exprs {

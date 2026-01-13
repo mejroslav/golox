@@ -14,13 +14,44 @@ func NewParser(tokens []Token) *Parser {
 // Parse parses the list of tokens and returns the resulting expression or an error
 func (p *Parser) Parse() ([]Stmt, error) {
 	for !p.isAtEnd() {
-		statement, err := p.statement()
+		statement, err := p.declaration()
 		if err != nil {
 			return nil, err
 		}
 		p.statements = append(p.statements, statement)
 	}
 	return p.statements, nil
+}
+
+// declaration -> varDecl | statement ;
+func (p *Parser) declaration() (Stmt, error) {
+	if p.match(VAR) {
+		return p.varDeclaration()
+	}
+	return p.statement()
+}
+
+// varDecl -> "var" IDENTIFIER ( "=" expression )? ";" ;
+func (p *Parser) varDeclaration() (Stmt, error) {
+	nameToken, err := p.consume(IDENTIFIER, "Expect variable name.")
+	if err != nil {
+		return nil, err
+	}
+
+	var initializer Expr
+	if p.match(EQUAL) {
+		initializer, err = p.expression()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	_, err = p.consume(SEMICOLON, "Expect ';' after variable declaration.")
+	if err != nil {
+		return nil, err
+	}
+
+	return &Var{Name: &nameToken, Initializer: initializer}, nil
 }
 
 // statement -> printStmt | expressionStmt ;
@@ -173,6 +204,9 @@ func (p *Parser) primary() (Expr, error) {
 		}
 		p.consume(RIGHT_PAREN, "Expect ')' after expression.")
 		return &Grouping{Expression: expr}, nil
+	}
+	if p.match(IDENTIFIER) {
+		return &Variable{Name: p.previous()}, nil
 	}
 
 	err := ParserError{

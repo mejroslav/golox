@@ -11,12 +11,13 @@ type ExprVisitor interface {
 	VisitGroupingExpr(expr *Grouping) (any, error)
 	VisitLiteralExpr(expr *Literal) (any, error)
 	VisitUnaryExpr(expr *Unary) (any, error)
+	VisitVariableExpr(expr *Variable) (any, error)
 }
 
 type Binary struct {
-	Left Expr
+	Left     Expr
 	Operator *Token
-	Right Expr
+	Right    Expr
 }
 
 func (node *Binary) Accept(visitor ExprVisitor) (any, error) {
@@ -41,10 +42,17 @@ func (node *Literal) Accept(visitor ExprVisitor) (any, error) {
 
 type Unary struct {
 	Operator *Token
-	Right Expr
+	Right    Expr
 }
 
 func (node *Unary) Accept(visitor ExprVisitor) (any, error) {
 	return visitor.VisitUnaryExpr(node)
 }
 
+type Variable struct {
+	Name Token
+}
+
+func (node *Variable) Accept(visitor ExprVisitor) (any, error) {
+	return visitor.VisitVariableExpr(node)
+}

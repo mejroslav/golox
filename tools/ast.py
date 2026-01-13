@@ -9,11 +9,13 @@ def generate_ast(output_dir: str) -> str:
         "Grouping : Expression Expr",
         "Literal  : Value any",
         "Unary    : Operator *Token, Right Expr",
+        "Variable : Name *Token",
     ])
 
     define_ast(output_dir, "stmt", [
         "Expression : Expression Expr",
         "Print     : Expression Expr",
+        "Var       : Name Token, Initializer Expr",
     ])
 
 def define_ast(output_dir: str, file: str, types: list[str]) -> None:
@@ -56,6 +58,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--output",
         "-o",
+        default="internal/pkg/golox",
         type=str,
         required=True,
         help="The output directory to write the generated AST code to.",
@@ -63,3 +66,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     ast = generate_ast(args.output)
+    print(f"AST classes generated successfully to {args.output}.")

@@ -3,10 +3,13 @@ package golox
 import "fmt"
 
 type Interpreter struct {
+	environment *Environment
 }
 
 func NewInterpreter() *Interpreter {
-	return &Interpreter{}
+	return &Interpreter{
+		environment: NewEnvironment(),
+	}
 }
 
 func (i *Interpreter) Interpret(statements []Stmt) (any, error) {
@@ -125,6 +128,23 @@ func (i *Interpreter) VisitPrintStmt(e *Print) (any, error) {
 	return nil, nil
 }
 
+func (i *Interpreter) VisitVarStmt(e *Var) (any, error) {
+	var value any // The default is nil. Another choice would be to raise an error, but Lox allows uninitialized variables.
+	var err error
+	if e.Initializer != nil {
+		value, err = i.evaluate(e.Initializer)
+		if err != nil {
+			return nil, err
+		}
+	}
+	i.environment.Define(e.Name.Lexeme, value)
+	return nil, nil
+}
+
+func (i *Interpreter) VisitVariableExpr(e *Variable) (any, error) {
+	return i.environment.Get(&e.Name)
+}
+
 func isEqual(a, b any) bool {
 	if a == nil && b == nil {
 		return true
@@ -152,7 +172,7 @@ func stringify(object any) string {
 	switch v := object.(type) {
 	case float64:
 		s := fmt.Sprintf("%v", v)
-		if s[len(s)-2:] == ".0" {
+		if s[max(0, len(s)-2):] == ".0" {
 			s = s[:len(s)-2]
 		}
 		return s
