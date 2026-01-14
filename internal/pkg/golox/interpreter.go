@@ -173,6 +173,19 @@ func (i *Interpreter) VisitBlockStmt(stmt *Block) (any, error) {
 	return nil, nil
 }
 
+func (i *Interpreter) VisitIfStmt(stmt *If) (any, error) {
+	condition, err := i.evaluate(stmt.Condition)
+	if err != nil {
+		return nil, err
+	}
+	if isTruthy(condition) {
+		return i.execute(stmt.Thenbranch)
+	} else if stmt.Elsebranch != nil {
+		return i.execute(stmt.Elsebranch)
+	}
+	return nil, nil
+}
+
 // ---------------------------------------------------------------------
 // Helpers
 

@@ -16,6 +16,7 @@ def generate_ast(output_dir: str) -> str:
     define_ast(output_dir, "stmt", [
         "Block     : Statements []Stmt",
         "Expression : Expression Expr",
+        "If        : Condition Expr, ThenBranch Stmt, ElseBranch Stmt",
         "Print     : Expression Expr",
         "Var       : Name Token, Initializer Expr",
     ])

@@ -59,6 +59,13 @@ func (a *AstPrinter) VisitBlockStmt(stmt *Block) (any, error) {
 	return a.parenthesizeStmts("block", stmt.Statements...)
 }
 
+func (a *AstPrinter) VisitIfStmt(stmt *If) (any, error) {
+	if stmt.Elsebranch != nil {
+		return a.parenthesize("if-else", stmt.Condition, stmt.Thenbranch, stmt.Elsebranch)
+	}
+	return a.parenthesize("if", stmt.Condition, stmt.Thenbranch)
+}
+
 func (a *AstPrinter) parenthesizeExprs(name string, exprs ...Expr) (string, error) {
 	result := "(" + name
 	for _, expr := range exprs {
@@ -73,6 +80,22 @@ func (a *AstPrinter) parenthesizeStmts(name string, stmts ...Stmt) (string, erro
 	result := "(" + name
 	for _, stmt := range stmts {
 		subResult, _ := stmt.Accept(a)
+		result += " " + subResult.(string)
+	}
+	result += ")"
+	return result, nil
+}
+
+func (a *AstPrinter) parenthesize(name string, parts ...any) (string, error) {
+	result := "(" + name
+	for _, part := range parts {
+		var subResult any
+		switch v := part.(type) {
+		case Expr:
+			subResult, _ = v.Accept(a)
+		case Stmt:
+			subResult, _ = v.Accept(a)
+		}
 		result += " " + subResult.(string)
 	}
 	result += ")"

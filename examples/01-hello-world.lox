@@ -1,6 +1,6 @@
-print "Hello, world!";
+// This is Hello, world program in Lox.
 
-// This is how we write comments in LOX
+print "Hello, world!";
 
 var a = 1;
 var b = 2;
