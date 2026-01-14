@@ -186,6 +186,25 @@ func (i *Interpreter) VisitIfStmt(stmt *If) (any, error) {
 	return nil, nil
 }
 
+func (i *Interpreter) VisitLogicalExpr(expr *Logical) (any, error) {
+	left, err := i.evaluate(expr.Left)
+	if err != nil {
+		return nil, err
+	}
+
+	if expr.Operator.Type == OR {
+		if isTruthy(left) {
+			return left, nil
+		}
+	} else {
+		if !isTruthy(left) {
+			return left, nil
+		}
+	}
+
+	return i.evaluate(expr.Right)
+}
+
 // ---------------------------------------------------------------------
 // Helpers
 

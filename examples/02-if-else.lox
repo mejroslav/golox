@@ -5,7 +5,7 @@ var Falsy = false;
 
 var pi = 3.14159;
 
-if (sixtySix / thirtyThree == 2){
+if (false or false){
     print "All conditions passed.";
 } else {
     print "Something is wrong!";

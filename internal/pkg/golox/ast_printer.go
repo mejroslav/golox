@@ -66,6 +66,10 @@ func (a *AstPrinter) VisitIfStmt(stmt *If) (any, error) {
 	return a.parenthesize("if", stmt.Condition, stmt.Thenbranch)
 }
 
+func (a *AstPrinter) VisitLogicalExpr(expr *Logical) (any, error) {
+	return a.parenthesizeExprs(expr.Operator.Lexeme, expr.Left, expr.Right)
+}
+
 func (a *AstPrinter) parenthesizeExprs(name string, exprs ...Expr) (string, error) {
 	result := "(" + name
 	for _, expr := range exprs {
