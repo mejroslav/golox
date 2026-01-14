@@ -205,6 +205,23 @@ func (i *Interpreter) VisitLogicalExpr(expr *Logical) (any, error) {
 	return i.evaluate(expr.Right)
 }
 
+func (i *Interpreter) VisitWhileStmt(stmt *While) (any, error) {
+	for {
+		condition, err := i.evaluate(stmt.Condition)
+		if err != nil {
+			return nil, err
+		}
+		if !isTruthy(condition) {
+			break
+		}
+		_, err = i.execute(stmt.Body)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return nil, nil
+}
+
 // ---------------------------------------------------------------------
 // Helpers
 

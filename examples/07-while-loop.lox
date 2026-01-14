@@ -1,0 +1,7 @@
+
+var myValue = 1;
+
+while (myValue <= 5){
+    print myValue;
+    myValue = myValue + 1;
+} 

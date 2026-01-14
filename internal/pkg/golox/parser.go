@@ -127,10 +127,13 @@ func (p *Parser) varDeclaration() (Stmt, error) {
 	return &Var{Name: nameToken, Initializer: initializer}, nil
 }
 
-// statement -> printStmt | block | expressionStmt ;
+// statement -> printStmt | whileStmt | ifStmt | block | expressionStmt ;
 func (p *Parser) statement() (Stmt, error) {
 	if p.match(PRINT) {
 		return p.printStatement()
+	}
+	if p.match(WHILE) {
+		return p.whileStatement()
 	}
 	if p.match(IF) {
 		return p.ifStatement()
@@ -156,6 +159,31 @@ func (p *Parser) printStatement() (Stmt, error) {
 		return nil, err
 	}
 	return &Print{Expression: value}, nil
+}
+
+// whileStmt -> "while" "(" expression ")" statement ;
+func (p *Parser) whileStatement() (Stmt, error) {
+	_, err := p.consume(LEFT_PAREN, "Expect '(' after 'while'.")
+	if err != nil {
+		return nil, err
+	}
+
+	condition, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = p.consume(RIGHT_PAREN, "Expect ')' after condition.")
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := p.statement()
+	if err != nil {
+		return nil, err
+	}
+
+	return &While{Condition: condition, Body: body}, nil
 }
 
 // ifStmt -> "if" "(" expression ")" statement ( "else" statement )? ;

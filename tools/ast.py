@@ -20,6 +20,7 @@ def generate_ast(output_dir: str) -> str:
         "If        : Condition Expr, ThenBranch Stmt, ElseBranch Stmt",
         "Print     : Expression Expr",
         "Var       : Name Token, Initializer Expr",
+        "While     : Condition Expr, Body Stmt",
     ])
 
 def define_ast(output_dir: str, file: str, types: list[str]) -> None:

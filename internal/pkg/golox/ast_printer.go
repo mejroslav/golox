@@ -70,6 +70,10 @@ func (a *AstPrinter) VisitLogicalExpr(expr *Logical) (any, error) {
 	return a.parenthesizeExprs(expr.Operator.Lexeme, expr.Left, expr.Right)
 }
 
+func (a *AstPrinter) VisitWhileStmt(stmt *While) (any, error) {
+	return a.parenthesize("while", stmt.Condition, stmt.Body)
+}
+
 func (a *AstPrinter) parenthesizeExprs(name string, exprs ...Expr) (string, error) {
 	result := "(" + name
 	for _, expr := range exprs {
