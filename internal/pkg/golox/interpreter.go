@@ -245,11 +245,24 @@ func (i *Interpreter) VisitCallExpr(expr *Call) (any, error) {
 }
 
 func (i *Interpreter) VisitFunctionStmt(stmt *Function) (any, error) {
-	function := NewLoxFunction(stmt)
+	function := NewLoxFunction(stmt, i.environment)
 	i.environment.Define(stmt.Name.Lexeme, function)
 	return nil, nil
 }
 
+func (i *Interpreter) VisitReturnStmt(stmt *Return) (any, error) {
+	var value any
+	var err error
+	if stmt.Value != nil {
+		value, err = i.evaluate(stmt.Value)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return nil, &ReturnValue{Value: value}
+}
+
+// ---------------------------------------------------------------------
 // Execute a statement
 
 func (i *Interpreter) execute(stmt Stmt) (any, error) {

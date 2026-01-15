@@ -89,6 +89,13 @@ func (a *AstPrinter) VisitFunctionStmt(stmt *Function) (any, error) {
 	return a.parenthesize("fun", parts...)
 }
 
+func (a *AstPrinter) VisitReturnStmt(stmt *Return) (any, error) {
+	if stmt.Value != nil {
+		return a.parenthesizeExprs("return", stmt.Value)
+	}
+	return "(return)", nil
+}
+
 // Helper methods
 
 func (a *AstPrinter) parenthesizeExprs(name string, exprs ...Expr) (string, error) {

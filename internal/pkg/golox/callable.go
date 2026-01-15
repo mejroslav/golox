@@ -10,9 +10,10 @@ type LoxFunction struct {
 	Closure     *Environment
 }
 
-func NewLoxFunction(declaration *Function) *LoxFunction {
+func NewLoxFunction(declaration *Function, closure *Environment) *LoxFunction {
 	return &LoxFunction{
 		Declaration: declaration,
+		Closure:     closure,
 	}
 }
 
@@ -32,9 +33,9 @@ func (lf *LoxFunction) Call(interpreter *Interpreter, arguments []any) (any, err
 
 	_, err := interpreter.executeBlock(lf.Declaration.Body, environment)
 	if err != nil {
-		// if returnErr, ok := err.(*Return); ok {
-		// 	return returnErr.Value, nil
-		// }
+		if returnErr, ok := err.(*ReturnValue); ok {
+			return returnErr.Value, nil
+		}
 		return nil, err
 	}
 	return nil, nil

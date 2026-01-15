@@ -12,6 +12,7 @@ type StmtVisitor interface {
 	VisitFunctionStmt(stmt *Function) (any, error)
 	VisitIfStmt(stmt *If) (any, error)
 	VisitPrintStmt(stmt *Print) (any, error)
+	VisitReturnStmt(stmt *Return) (any, error)
 	VisitVarStmt(stmt *Var) (any, error)
 	VisitWhileStmt(stmt *While) (any, error)
 }
@@ -33,9 +34,9 @@ func (node *Expression) Accept(visitor StmtVisitor) (any, error) {
 }
 
 type Function struct {
-	Name *Token
+	Name   *Token
 	Params []*Token
-	Body []Stmt
+	Body   []Stmt
 }
 
 func (node *Function) Accept(visitor StmtVisitor) (any, error) {
@@ -43,7 +44,7 @@ func (node *Function) Accept(visitor StmtVisitor) (any, error) {
 }
 
 type If struct {
-	Condition Expr
+	Condition  Expr
 	Thenbranch Stmt
 	Elsebranch Stmt
 }
@@ -60,8 +61,17 @@ func (node *Print) Accept(visitor StmtVisitor) (any, error) {
 	return visitor.VisitPrintStmt(node)
 }
 
+type Return struct {
+	Keyword *Token
+	Value   Expr
+}
+
+func (node *Return) Accept(visitor StmtVisitor) (any, error) {
+	return visitor.VisitReturnStmt(node)
+}
+
 type Var struct {
-	Name Token
+	Name        Token
 	Initializer Expr
 }
 
@@ -71,10 +81,9 @@ func (node *Var) Accept(visitor StmtVisitor) (any, error) {
 
 type While struct {
 	Condition Expr
-	Body Stmt
+	Body      Stmt
 }
 
 func (node *While) Accept(visitor StmtVisitor) (any, error) {
 	return visitor.VisitWhileStmt(node)
 }
-

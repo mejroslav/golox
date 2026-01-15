@@ -130,7 +130,7 @@ func (p *Parser) varDeclaration() (Stmt, error) {
 	return &Var{Name: nameToken, Initializer: initializer}, nil
 }
 
-// statement -> printStmt | forStmt | whileStmt | ifStmt | block | expressionStmt ;
+// statement -> printStmt | forStmt | whileStmt | ifStmt | returnStmt | block | expressionStmt;
 func (p *Parser) statement() (Stmt, error) {
 	if p.match(IF) {
 		return p.ifStatement()
@@ -140,6 +140,9 @@ func (p *Parser) statement() (Stmt, error) {
 	}
 	if p.match(WHILE) {
 		return p.whileStatement()
+	}
+	if p.match(RETURN) {
+		return p.returnStatement()
 	}
 	if p.match(PRINT) {
 		return p.printStatement()
@@ -310,6 +313,27 @@ func (p *Parser) expressionStatement() (Stmt, error) {
 		return nil, err
 	}
 	return &Expression{Expression: expr}, nil
+}
+
+// returnStmt -> "return" expression? ";" ;
+func (p *Parser) returnStatement() (Stmt, error) {
+	keyword := p.previous()
+
+	var value Expr
+	var err error
+	if !p.check(SEMICOLON) {
+		value, err = p.expression()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	_, err = p.consume(SEMICOLON, "Expect ';' after return value.")
+	if err != nil {
+		return nil, err
+	}
+
+	return &Return{Keyword: keyword, Value: value}, nil
 }
 
 // function -> "fun" IDENTIFIER "(" parameters? ")" block ;
