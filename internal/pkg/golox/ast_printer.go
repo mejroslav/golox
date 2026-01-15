@@ -74,6 +74,23 @@ func (a *AstPrinter) VisitWhileStmt(stmt *While) (any, error) {
 	return a.parenthesize("while", stmt.Condition, stmt.Body)
 }
 
+func (a *AstPrinter) VisitCallExpr(expr *Call) (any, error) {
+	return a.parenthesizeExprs("call", expr.Callee)
+}
+
+func (a *AstPrinter) VisitFunctionStmt(stmt *Function) (any, error) {
+	parts := []any{stmt.Name}
+	for _, param := range stmt.Params {
+		parts = append(parts, param)
+	}
+	for _, bodyStmt := range stmt.Body {
+		parts = append(parts, bodyStmt)
+	}
+	return a.parenthesize("fun", parts...)
+}
+
+// Helper methods
+
 func (a *AstPrinter) parenthesizeExprs(name string, exprs ...Expr) (string, error) {
 	result := "(" + name
 	for _, expr := range exprs {

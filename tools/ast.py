@@ -6,6 +6,7 @@ def generate_ast(output_dir: str) -> str:
 
     define_ast(output_dir, "expr", [
         "Binary   : Left Expr, Operator *Token, Right Expr",
+        "Call     : Callee Expr, Paren *Token, Arguments []Expr",
         "Grouping : Expression Expr",
         "Literal  : Value any",
         "Logical  : Left Expr, Operator *Token, Right Expr",
@@ -17,6 +18,7 @@ def generate_ast(output_dir: str) -> str:
     define_ast(output_dir, "stmt", [
         "Block     : Statements []Stmt",
         "Expression : Expression Expr",
+        "Function   : Name *Token, Params []*Token, Body []Stmt",
         "If        : Condition Expr, ThenBranch Stmt, ElseBranch Stmt",
         "Print     : Expression Expr",
         "Var       : Name Token, Initializer Expr",

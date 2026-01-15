@@ -96,10 +96,13 @@ func (p *Parser) and() (Expr, error) {
 	return expr, nil
 }
 
-// declaration -> varDecl | statement ;
+// declaration -> varDecl | statement | function ;
 func (p *Parser) declaration() (Stmt, error) {
 	if p.match(VAR) {
 		return p.varDeclaration()
+	}
+	if p.match(FUN) {
+		return p.function("function")
 	}
 	return p.statement()
 }
@@ -309,6 +312,56 @@ func (p *Parser) expressionStatement() (Stmt, error) {
 	return &Expression{Expression: expr}, nil
 }
 
+// function -> "fun" IDENTIFIER "(" parameters? ")" block ;
+func (p *Parser) function(kind string) (Stmt, error) {
+	nameToken, err := p.consume(IDENTIFIER, "Expect "+kind+" name.")
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = p.consume(LEFT_PAREN, "Expect '(' after "+kind+" name.")
+	if err != nil {
+		return nil, err
+	}
+
+	params := []*Token{}
+	if !p.check(RIGHT_PAREN) {
+		for {
+			if len(params) >= 255 {
+				return nil, ParserError{
+					Token:   *p.peek(),
+					Message: "Can't have more than 255 parameters.",
+				}
+			}
+			paramToken, err := p.consume(IDENTIFIER, "Expect parameter name.")
+			if err != nil {
+				return nil, err
+			}
+			params = append(params, &paramToken)
+			if !p.match(COMMA) {
+				break
+			}
+		}
+	}
+
+	_, err = p.consume(RIGHT_PAREN, "Expect ')' after parameters.")
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = p.consume(LEFT_BRACE, "Expect '{' before "+kind+" body.")
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := p.block()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Function{Name: &nameToken, Params: params, Body: body}, nil
+}
+
 // block -> "{" declaration* "}" ;
 func (p *Parser) block() ([]Stmt, error) {
 	statements := []Stmt{}
@@ -405,7 +458,7 @@ func (p *Parser) factor() (Expr, error) {
 	return expr, nil
 }
 
-// unary -> ( "!" | "-" ) unary | primary ;
+// unary -> ( "!" | "-" ) unary | call ;
 func (p *Parser) unary() (Expr, error) {
 	if p.match(BANG, MINUS) {
 		operator := p.previous()
@@ -416,7 +469,58 @@ func (p *Parser) unary() (Expr, error) {
 		return &Unary{Operator: operator, Right: right}, nil
 	}
 
-	return p.primary()
+	return p.call()
+}
+
+// call -> primary ( "(" arguments? ")" )* ;
+func (p *Parser) call() (Expr, error) {
+	expr, err := p.primary()
+	if err != nil {
+		return nil, err
+	}
+
+	for {
+		if p.match(LEFT_PAREN) {
+			expr, err = p.finishCall(expr)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			break
+		}
+	}
+
+	return expr, nil
+}
+
+// finishCall handles parsing the arguments and closing parenthesis of a function call
+func (p *Parser) finishCall(callee Expr) (Expr, error) {
+	arguments := []Expr{}
+	if !p.check(RIGHT_PAREN) {
+		for {
+			if len(arguments) >= 255 {
+				return nil, ParserError{
+					Token:   *p.peek(),
+					Message: "Can't have more than 255 arguments.",
+				}
+			}
+			arg, err := p.expression()
+			if err != nil {
+				return nil, err
+			}
+			arguments = append(arguments, arg)
+			if !p.match(COMMA) {
+				break
+			}
+		}
+	}
+
+	paren, err := p.consume(RIGHT_PAREN, "Expect ')' after arguments.")
+	if err != nil {
+		return nil, err
+	}
+
+	return &Call{Callee: callee, Paren: &paren, Arguments: arguments}, nil
 }
 
 // primary -> "true" | "false" | "nil" | NUMBER | STRING | "(" expression ")" ;
@@ -438,7 +542,10 @@ func (p *Parser) primary() (Expr, error) {
 		if err != nil {
 			return nil, err
 		}
-		p.consume(RIGHT_PAREN, "Expect ')' after expression.")
+		_, err = p.consume(RIGHT_PAREN, "Expect ')' after expression.")
+		if err != nil {
+			return nil, err
+		}
 		return &Grouping{Expression: expr}, nil
 	}
 	if p.match(IDENTIFIER) {
