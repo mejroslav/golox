@@ -1,14 +1,25 @@
 package golox
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Interpreter struct {
+	globals     *Environment
 	environment *Environment
 }
 
 func NewInterpreter() *Interpreter {
+	globals := NewEnvironment(nil)
+
+	// Add built-in functions to the global environment
+	clockCallable := Clock{}
+	globals.Define("clock", clockCallable)
+
+	environment := globals
 	return &Interpreter{
-		environment: NewEnvironment(nil),
+		globals:     globals,
+		environment: environment,
 	}
 }
 
@@ -20,14 +31,6 @@ func (i *Interpreter) Interpret(statements []Stmt) (any, error) {
 		}
 	}
 	return nil, nil
-}
-
-func (i *Interpreter) execute(stmt Stmt) (any, error) {
-	return stmt.Accept(i)
-}
-
-func (i *Interpreter) evaluate(expr Expr) (any, error) {
-	return expr.Accept(i)
 }
 
 func (i *Interpreter) VisitLiteralExpr(e *Literal) (any, error) {
@@ -158,19 +161,7 @@ func (i *Interpreter) VisitAssignExpr(e *Assign) (any, error) {
 }
 
 func (i *Interpreter) VisitBlockStmt(stmt *Block) (any, error) {
-	previous := i.environment
-	i.environment = NewEnvironment(previous)
-	defer func() {
-		i.environment = previous
-	}()
-
-	for _, statement := range stmt.Statements {
-		_, err := i.execute(statement)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return nil, nil
+	return i.executeBlock(stmt.Statements, NewEnvironment(i.environment))
 }
 
 func (i *Interpreter) VisitIfStmt(stmt *If) (any, error) {
@@ -215,6 +206,69 @@ func (i *Interpreter) VisitWhileStmt(stmt *While) (any, error) {
 			break
 		}
 		_, err = i.execute(stmt.Body)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return nil, nil
+}
+
+func (i *Interpreter) VisitCallExpr(expr *Call) (any, error) {
+	callee, err := i.evaluate(expr.Callee)
+	if err != nil {
+		return nil, err
+	}
+
+	arguments := []any{}
+	for _, argument := range expr.Arguments {
+		arg, err := i.evaluate(argument)
+		if err != nil {
+			return nil, err
+		}
+		arguments = append(arguments, arg)
+	}
+
+	if _, ok := callee.(LoxCallable); !ok {
+		return nil, NewRuntimeError(*expr.Paren, "Can only call functions and classes.")
+	}
+
+	function, ok := callee.(LoxCallable)
+	if !ok {
+		return nil, NewRuntimeError(*expr.Paren, "Can only call functions and classes.")
+	}
+
+	if len(arguments) != function.Arity() {
+		return nil, NewRuntimeError(*expr.Paren, fmt.Sprintf("Expected %d arguments but got %d.", function.Arity(), len(arguments)))
+	}
+
+	return function.Call(i, arguments)
+}
+
+func (i *Interpreter) VisitFunctionStmt(stmt *Function) (any, error) {
+	function := NewLoxFunction(stmt)
+	i.environment.Define(stmt.Name.Lexeme, function)
+	return nil, nil
+}
+
+// Execute a statement
+
+func (i *Interpreter) execute(stmt Stmt) (any, error) {
+	return stmt.Accept(i)
+}
+
+func (i *Interpreter) evaluate(expr Expr) (any, error) {
+	return expr.Accept(i)
+}
+
+func (i *Interpreter) executeBlock(statements []Stmt, environment *Environment) (any, error) {
+	previous := i.environment
+	i.environment = environment
+	defer func() {
+		i.environment = previous
+	}()
+
+	for _, statement := range statements {
+		_, err := i.execute(statement)
 		if err != nil {
 			return nil, err
 		}
