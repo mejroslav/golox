@@ -1,0 +1,15 @@
+fun add(a, b) {
+  print a + b;
+}
+
+print add; // "<fn add>".
+
+
+fun SayHi(first, last) {
+  fun _construct_name(first, last){
+    return first + " " + last;
+  } 
+  print "Hi, " + _construct_name(first, last) + "!";
+}
+
+sayHi("Dear", "Reader");
