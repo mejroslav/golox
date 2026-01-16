@@ -5,7 +5,7 @@ fun add(a, b) {
 print add; // "<fn add>".
 
 
-fun SayHi(first, last) {
+fun sayHi(first, last) {
   fun _construct_name(first, last){
     return first + " " + last;
   } 
