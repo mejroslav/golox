@@ -33,6 +33,9 @@ func (lf *LoxFunction) Call(interpreter *Interpreter, arguments []any) (any, err
 
 	_, err := interpreter.executeBlock(lf.Declaration.Body, environment)
 	if err != nil {
+		// ReturnValue is used to handle return statements in functions
+		// and to propagate the return value up the call stack.
+		// If we catch a ReturnValue error, we extract the value and return it.
 		if returnErr, ok := err.(*ReturnValue); ok {
 			return returnErr.Value, nil
 		}
