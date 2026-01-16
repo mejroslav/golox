@@ -1,0 +1,13 @@
+// This illustrates how functions can change global variables
+
+var a = "global";
+
+print a;  // "global"
+
+fun localize_a(){
+    a = "local";
+}
+
+localize_a();
+
+print a;  // "local"
