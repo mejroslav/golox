@@ -21,6 +21,7 @@ func NewInterpreter() *Interpreter {
 	return &Interpreter{
 		globals:     globals,
 		environment: environment,
+		locals:      make(map[Expr]int),
 	}
 }
 
