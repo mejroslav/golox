@@ -5,8 +5,9 @@ import (
 )
 
 type Resolver struct {
-	interpreter *Interpreter
-	scopeStack  *utils.Stack
+	interpreter     *Interpreter
+	scopeStack      *utils.Stack
+	currentFunction FunctionType
 }
 
 func NewResolver(interpreter *Interpreter) *Resolver {
@@ -16,11 +17,13 @@ func NewResolver(interpreter *Interpreter) *Resolver {
 	}
 }
 
-func (r *Resolver) Resolve(statements []Stmt) []Stmt {
+func (r *Resolver) Resolve(statements []Stmt) ([]Stmt, error) {
 	for _, statement := range statements {
-		_ = r.resolveStmt(statement)
+		if err := r.resolveStmt(statement); err != nil {
+			return nil, err
+		}
 	}
-	return statements
+	return statements, nil
 }
 
 func (r *Resolver) BeginScope() {
@@ -106,7 +109,7 @@ func (r *Resolver) VisitFunctionStmt(stmt *Function) (any, error) {
 		return nil, err
 	}
 
-	err = r.resolveFunction(stmt)
+	err = r.resolveFunction(stmt, FT_FUNCTION)
 	if err != nil {
 		return nil, err
 	}
@@ -154,6 +157,9 @@ func (r *Resolver) VisitWhileStmt(stmt *While) (any, error) {
 }
 
 func (r *Resolver) VisitReturnStmt(stmt *Return) (any, error) {
+	if r.currentFunction == FT_NONE {
+		return nil, NewRuntimeError(*stmt.Keyword, "Cannot return from top-level code.")
+	}
 	if stmt.Value != nil {
 		if err := r.resolveExpr(stmt.Value); err != nil {
 			return nil, err
@@ -216,6 +222,9 @@ func (r *Resolver) declare(name *Token) error {
 		return nil
 	}
 	scope := r.scopeStack.Peek().(map[string]bool)
+	if _, ok := scope[name.Lexeme]; ok {
+		return NewRuntimeError(*name, "Variable with name '"+name.Lexeme+"' already declared in this scope.")
+	}
 	scope[name.Lexeme] = false
 	return nil
 }
@@ -244,7 +253,10 @@ func (r *Resolver) resolveLocal(expr Expr, name *Token) error {
 	return nil
 }
 
-func (r *Resolver) resolveFunction(function *Function) error {
+func (r *Resolver) resolveFunction(function *Function, functionType FunctionType) error {
+	enclosingFunction := r.currentFunction
+	r.currentFunction = functionType
+
 	r.BeginScope()
 	for _, param := range function.Params {
 		err := r.declare(param)
@@ -262,5 +274,7 @@ func (r *Resolver) resolveFunction(function *Function) error {
 		}
 	}
 	r.EndScope()
+
+	r.currentFunction = enclosingFunction
 	return nil
 }

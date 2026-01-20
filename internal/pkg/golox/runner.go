@@ -63,7 +63,10 @@ func RunFile(path string, showTokens bool, showAST bool) error {
 	interpreter := NewInterpreter()
 	// Resolve the statements
 	resolver := NewResolver(interpreter)
-	statements = resolver.Resolve(statements)
+	statements, err = resolver.Resolve(statements)
+	if err != nil {
+		return fmt.Errorf("resolution error: %w", err)
+	}
 
 	// Interpret the statements
 	_, runtimeErr := interpreter.Interpret(statements)
