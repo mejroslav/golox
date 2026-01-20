@@ -7,6 +7,7 @@ import (
 type Interpreter struct {
 	globals     *Environment
 	environment *Environment
+	locals      map[Expr]int
 }
 
 func NewInterpreter() *Interpreter {
@@ -148,12 +149,27 @@ func (i *Interpreter) VisitVariableExpr(e *Variable) (any, error) {
 	return i.environment.Get(e.Name)
 }
 
+func (i *Interpreter) lookupVariable(name Token, expr Expr) (any, error) {
+	distance, ok := i.locals[expr]
+	if ok {
+		return i.environment.GetAt(distance, name.Lexeme)
+	} else {
+		return i.globals.Get(&name)
+	}
+}
+
 func (i *Interpreter) VisitAssignExpr(e *Assign) (any, error) {
 	value, err := i.evaluate(e.Value)
 	if err != nil {
 		return nil, err
 	}
-	err = i.environment.Assign(e.Name, value)
+
+	distance, ok := i.locals[e]
+	if ok {
+		err = i.environment.AssignAt(distance, e.Name, value)
+	} else {
+		err = i.globals.Assign(e.Name, value)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -170,9 +186,9 @@ func (i *Interpreter) VisitIfStmt(stmt *If) (any, error) {
 		return nil, err
 	}
 	if isTruthy(condition) {
-		return i.execute(stmt.Thenbranch)
-	} else if stmt.Elsebranch != nil {
-		return i.execute(stmt.Elsebranch)
+		return i.execute(stmt.ThenBranch)
+	} else if stmt.ElseBranch != nil {
+		return i.execute(stmt.ElseBranch)
 	}
 	return nil, nil
 }
@@ -267,6 +283,11 @@ func (i *Interpreter) VisitReturnStmt(stmt *Return) (any, error) {
 
 func (i *Interpreter) execute(stmt Stmt) (any, error) {
 	return stmt.Accept(i)
+}
+
+func (i *Interpreter) resolve(expr Expr, depth int) error {
+	i.locals[expr] = depth
+	return nil
 }
 
 func (i *Interpreter) evaluate(expr Expr) (any, error) {

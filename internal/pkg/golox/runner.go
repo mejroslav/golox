@@ -61,6 +61,11 @@ func RunFile(path string, showTokens bool, showAST bool) error {
 	}
 
 	interpreter := NewInterpreter()
+	// Resolve the statements
+	resolver := NewResolver(interpreter)
+	statements = resolver.Resolve(statements)
+
+	// Interpret the statements
 	_, runtimeErr := interpreter.Interpret(statements)
 	if runtimeErr != nil {
 		return fmt.Errorf("runtime error: %w", runtimeErr)

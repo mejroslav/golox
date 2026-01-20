@@ -32,6 +32,23 @@ func (e *Environment) Get(name *Token) (any, error) {
 	}
 }
 
+func (e *Environment) GetAt(distance int, name string) (any, error) {
+	environment := e.ancestor(distance)
+	if value, ok := environment.values[name]; ok {
+		return value, nil
+	}
+	return nil, RuntimeError{
+		Message: "Undefined variable '" + name + "'.",
+	}
+}
+
+func (e *Environment) ancestor(distance int) *Environment {
+	for i := 0; i < distance; i++ {
+		e = e.enclosing
+	}
+	return e
+}
+
 func (e *Environment) Assign(name *Token, value any) error {
 	if _, ok := e.values[name.Lexeme]; ok {
 		e.values[name.Lexeme] = value
@@ -43,6 +60,18 @@ func (e *Environment) Assign(name *Token, value any) error {
 		return e.enclosing.Assign(name, value)
 	}
 
+	return RuntimeError{
+		Token:   *name,
+		Message: "Undefined variable '" + name.Lexeme + "'.",
+	}
+}
+
+func (e *Environment) AssignAt(distance int, name *Token, value any) error {
+	environment := e.ancestor(distance)
+	if _, ok := environment.values[name.Lexeme]; ok {
+		environment.values[name.Lexeme] = value
+		return nil
+	}
 	return RuntimeError{
 		Token:   *name,
 		Message: "Undefined variable '" + name.Lexeme + "'.",

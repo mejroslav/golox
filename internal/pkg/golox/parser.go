@@ -299,7 +299,7 @@ func (p *Parser) ifStatement() (Stmt, error) {
 		}
 	}
 
-	return &If{Condition: condition, Thenbranch: thenBranch, Elsebranch: elseBranch}, nil
+	return &If{Condition: condition, ThenBranch: thenBranch, ElseBranch: elseBranch}, nil
 }
 
 // expressionStmt -> expression ";" ;

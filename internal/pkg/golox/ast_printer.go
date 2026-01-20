@@ -60,10 +60,10 @@ func (a *AstPrinter) VisitBlockStmt(stmt *Block) (any, error) {
 }
 
 func (a *AstPrinter) VisitIfStmt(stmt *If) (any, error) {
-	if stmt.Elsebranch != nil {
-		return a.parenthesize("if-else", stmt.Condition, stmt.Thenbranch, stmt.Elsebranch)
+	if stmt.ElseBranch != nil {
+		return a.parenthesize("if-else", stmt.Condition, stmt.ThenBranch, stmt.ElseBranch)
 	}
-	return a.parenthesize("if", stmt.Condition, stmt.Thenbranch)
+	return a.parenthesize("if", stmt.Condition, stmt.ThenBranch)
 }
 
 func (a *AstPrinter) VisitLogicalExpr(expr *Logical) (any, error) {

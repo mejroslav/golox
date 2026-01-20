@@ -10,6 +10,13 @@ func NewStack() *Stack {
 	}
 }
 
+func (s *Stack) Get(index int) (any, bool) {
+	if index < 0 || index >= len(s.elements) {
+		return nil, false
+	}
+	return s.elements[index], true
+}
+
 func (s *Stack) Push(element any) {
 	s.elements = append(s.elements, element)
 }
