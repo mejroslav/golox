@@ -1,5 +1,6 @@
 package golox
 
+// Environment represents a variable scope in the Lox language.
 type Environment struct {
 	enclosing *Environment
 	values    map[string]any
@@ -12,10 +13,13 @@ func NewEnvironment(enclosing *Environment) *Environment {
 	}
 }
 
+// Define adds a new variable to the environment.
 func (e *Environment) Define(name string, value any) {
 	e.values[name] = value
 }
 
+// Get retrieves the value of a variable from the environment.
+// It searches recursively in enclosing environments if the variable is not found.
 func (e *Environment) Get(name *Token) (any, error) {
 	if value, ok := e.values[name.Lexeme]; ok {
 		return value, nil
@@ -32,6 +36,8 @@ func (e *Environment) Get(name *Token) (any, error) {
 	}
 }
 
+// GetAt retrieves the value of a variable at a specific distance
+// from the current environment.
 func (e *Environment) GetAt(distance int, name string) (any, error) {
 	environment := e.ancestor(distance)
 	if value, ok := environment.values[name]; ok {
@@ -49,6 +55,8 @@ func (e *Environment) ancestor(distance int) *Environment {
 	return e
 }
 
+// Assign updates the value of an existing variable in the environment.
+// It searches recursively in enclosing environments if the variable is not found.
 func (e *Environment) Assign(name *Token, value any) error {
 	if _, ok := e.values[name.Lexeme]; ok {
 		e.values[name.Lexeme] = value
@@ -66,6 +74,8 @@ func (e *Environment) Assign(name *Token, value any) error {
 	}
 }
 
+// AssignAt updates the value of a variable at a specific distance
+// from the current environment.
 func (e *Environment) AssignAt(distance int, name *Token, value any) error {
 	environment := e.ancestor(distance)
 	if _, ok := environment.values[name.Lexeme]; ok {

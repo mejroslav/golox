@@ -1,0 +1,26 @@
+var state = 0;
+
+fun getCallback(){
+    if (state == 0){
+        return onState0;
+    } else if (state == 1){
+        return onState1;
+    } else {
+        print "Unknown state!";
+    }
+}
+
+fun onState0(){
+    print "State 0";
+}
+
+fun onState1(){
+    print "State 1";
+}
+
+
+fun main(){
+    getCallback()();
+}
+
+main();

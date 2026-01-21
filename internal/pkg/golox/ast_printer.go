@@ -127,6 +127,10 @@ func (a *AstPrinter) parenthesize(name string, parts ...any) (string, error) {
 			subResult, _ = v.Accept(a)
 		case Stmt:
 			subResult, _ = v.Accept(a)
+		case nil:
+			subResult = "nil"
+		default:
+			subResult = fmt.Sprintf("%v", v)
 		}
 		result += " " + subResult.(string)
 	}

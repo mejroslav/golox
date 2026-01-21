@@ -1,0 +1,6 @@
+// This is not a working example, since LOX does not use lambda functions
+var lambdaFunction = fun(){
+    return 132;
+};
+
+lambdaFunction();
