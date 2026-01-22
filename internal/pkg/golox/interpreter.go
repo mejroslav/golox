@@ -15,8 +15,10 @@ func NewInterpreter() *Interpreter {
 	globals := NewEnvironment(nil)
 
 	// Add built-in functions to the global environment
-	clockCallable := Clock{}
+	clockCallable := &Clock{}
 	globals.Define("clock", clockCallable)
+	inputCallable := &Input{}
+	globals.Define("input", inputCallable)
 
 	environment := globals
 	return &Interpreter{
@@ -252,10 +254,6 @@ func (i *Interpreter) VisitCallExpr(expr *Call) (any, error) {
 			return nil, err
 		}
 		arguments = append(arguments, arg)
-	}
-
-	if _, ok := callee.(LoxCallable); !ok {
-		return nil, NewRuntimeError(*expr.Paren, "Can only call functions and classes.")
 	}
 
 	function, ok := callee.(LoxCallable)
