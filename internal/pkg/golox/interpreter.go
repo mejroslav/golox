@@ -4,10 +4,11 @@ import (
 	"fmt"
 )
 
+// Interpreter interprets and executes Lox code.
 type Interpreter struct {
-	globals     *Environment
-	environment *Environment
-	locals      map[Expr]int
+	globals     *Environment // The global environment
+	environment *Environment // The current environment
+	locals      map[Expr]int // Maps expressions to their scope depth
 }
 
 func NewInterpreter() *Interpreter {
@@ -25,6 +26,7 @@ func NewInterpreter() *Interpreter {
 	}
 }
 
+// Interpret interprets and executes a list of statements.
 func (i *Interpreter) Interpret(statements []Stmt) (any, error) {
 	for _, stmt := range statements {
 		_, err := i.execute(stmt)
@@ -147,7 +149,7 @@ func (i *Interpreter) VisitVarStmt(e *Var) (any, error) {
 }
 
 func (i *Interpreter) VisitVariableExpr(e *Variable) (any, error) {
-	return i.environment.Get(e.Name)
+	return i.lookupVariable(*e.Name, e)
 }
 
 func (i *Interpreter) lookupVariable(name Token, expr Expr) (any, error) {
