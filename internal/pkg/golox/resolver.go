@@ -4,10 +4,12 @@ import (
 	"mejroslav/golox/v2/internal/pkg/utils"
 )
 
+// Resolver performs static analysis to resolve variable bindings.
+// It determines the scope depth of each variable and informs the interpreter.
 type Resolver struct {
-	interpreter     *Interpreter
-	scopeStack      *utils.Stack
-	currentFunction FunctionType
+	interpreter     *Interpreter // The interpreter to resolve variables for
+	scopeStack      *utils.Stack // Stack of scopes. Each scope is a map of variable names to their defined status
+	currentFunction FunctionType // The type of the current function being resolved
 }
 
 func NewResolver(interpreter *Interpreter) *Resolver {
@@ -238,6 +240,7 @@ func (r *Resolver) define(name *Token) error {
 	return nil
 }
 
+// resolveLocal resolves a local variable by determining its scope depth.
 func (r *Resolver) resolveLocal(expr Expr, name *Token) error {
 	for i := r.scopeStack.Size() - 1; i >= 0; i-- {
 		scope, ok := r.scopeStack.Get(i)
