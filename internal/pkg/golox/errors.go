@@ -6,12 +6,13 @@ import "fmt"
 type ScannerError struct {
 	File    string
 	Line    int
+	Column  int
 	Context string
 	Message string
 }
 
 func (s ScannerError) Error() string {
-	return fmt.Sprintf("SCANNER ERROR [%s:%d] %s\n%s\n", s.File, s.Line, s.Message, s.Context)
+	return fmt.Sprintf("SCANNER ERROR [%s:%d:%d] %s\n%s\n", s.File, s.Line, s.Column, s.Message, s.Context)
 }
 
 type ParserError struct {

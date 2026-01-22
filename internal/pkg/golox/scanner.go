@@ -12,6 +12,7 @@ type CodeScanner struct {
 	start   int
 	current int
 	line    int
+	column  int
 	file    string
 }
 
@@ -128,8 +129,10 @@ func (s *CodeScanner) scanToken() {
 		} else {
 			// Unexpected character.
 			err := ScannerError{
-				File:    s.file,
-				Line:    s.line,
+				File:   s.file,
+				Line:   s.line,
+				Column: s.column,
+
 				Context: s.getContextLines(),
 				Message: fmt.Sprintf("Unexpected character '%c'.", c),
 			}
@@ -140,12 +143,12 @@ func (s *CodeScanner) scanToken() {
 
 func (s *CodeScanner) addToken(tokenType TokenType) {
 	text := s.source[s.start:s.current]
-	s.tokens = append(s.tokens, NewToken(tokenType, text, nil, s.file, s.line))
+	s.tokens = append(s.tokens, NewToken(tokenType, text, nil, s.file, s.line, s.column))
 }
 
 func (s *CodeScanner) addTokenWithValue(tokenType TokenType, value any) {
 	text := s.source[s.start:s.current]
-	s.tokens = append(s.tokens, NewToken(tokenType, text, value, s.file, s.line))
+	s.tokens = append(s.tokens, NewToken(tokenType, text, value, s.file, s.line, s.column))
 }
 
 // string handles string literals, consuming characters until the closing quote is found.
@@ -242,6 +245,7 @@ func (s *CodeScanner) isAlphaNumeric(c rune) bool {
 func (s *CodeScanner) advance() rune {
 	c := s.charAt(s.current)
 	s.current++
+	s.column++
 	return c
 }
 
@@ -255,6 +259,7 @@ func (s *CodeScanner) match(expected rune) bool {
 		return false
 	}
 	s.current++
+	s.column++
 	return true
 }
 
@@ -283,6 +288,7 @@ func (s *CodeScanner) charAt(index int) rune {
 
 func (s *CodeScanner) newLine() {
 	s.line++
+	s.column = 0
 }
 
 func (s *CodeScanner) isAtEnd() bool {
