@@ -23,14 +23,14 @@ type ParserError struct {
 // ParserError reports an error encountered during parsing
 func (p ParserError) Error() string {
 	if p.Token.Type == EOF {
-		return parserErrorMsg(p.Token.File, p.Token.Line, "at end", p.Message)
+		return parserErrorMsg(p.Token.File, p.Token.Line, p.Token.Column, "at end", p.Message)
 	} else {
-		return parserErrorMsg(p.Token.File, p.Token.Line, "at '"+p.Token.Lexeme+"'", p.Message)
+		return parserErrorMsg(p.Token.File, p.Token.Line, p.Token.Column, "at '"+p.Token.Lexeme+"'", p.Message)
 	}
 }
 
-func parserErrorMsg(file string, line int, where string, message string) string {
-	return fmt.Sprintf("PARSER ERROR [%s:%d] %s: %s\n", file, line, where, message)
+func parserErrorMsg(file string, line int, column int, where string, message string) string {
+	return fmt.Sprintf("PARSER ERROR [%s:%d:%d] %s: %s\n", file, line, column, where, message)
 }
 
 type RuntimeError struct {
@@ -46,5 +46,5 @@ func NewRuntimeError(token Token, message string) RuntimeError {
 }
 
 func (r RuntimeError) Error() string {
-	return fmt.Sprintf("RUNTIME ERROR [%s:%d] %s\n", r.Token.File, r.Token.Line, r.Message)
+	return fmt.Sprintf("RUNTIME ERROR [%s:%d:%d] %s\n", r.Token.File, r.Token.Line, r.Token.Column, r.Message)
 }
