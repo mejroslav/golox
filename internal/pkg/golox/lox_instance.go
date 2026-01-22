@@ -31,3 +31,7 @@ func (li *LoxInstance) Get(name Token) (any, error) {
 	err := NewRuntimeError(name, fmt.Sprintf("Class '%s' has not defined property '%s'.", li.class.Name, name.Lexeme))
 	return nil, err
 }
+
+func (li *LoxInstance) Set(name Token, value any) {
+	li.fields[name.Lexeme] = value
+}

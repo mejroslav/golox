@@ -284,6 +284,26 @@ func (i *Interpreter) VisitGetExpr(expr *Get) (any, error) {
 	return loxInstance.Get(*expr.Name)
 }
 
+func (i *Interpreter) VisitSetExpr(expr *Set) (any, error) {
+	object, err := i.evaluate(expr.Object)
+	if err != nil {
+		return nil, err
+	}
+
+	loxInstance, ok := object.(*LoxInstance)
+	if !ok {
+		return nil, NewRuntimeError(*expr.Name, "Only instances have fields.")
+	}
+
+	value, err := i.evaluate(expr.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	loxInstance.Set(*expr.Name, value)
+	return value, nil
+}
+
 func (i *Interpreter) VisitFunctionStmt(stmt *Function) (any, error) {
 	function := NewLoxFunction(stmt, i.environment)
 	i.environment.Define(stmt.Name.Lexeme, function)

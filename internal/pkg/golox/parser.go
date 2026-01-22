@@ -46,6 +46,8 @@ func (p *Parser) assignment() (Expr, error) {
 		if variable, ok := expr.(*Variable); ok {
 			name := variable.Name
 			return &Assign{Name: name, Value: value}, nil
+		} else if get, ok := expr.(*Get); ok {
+			return &Set{Object: get.Object, Name: get.Name, Value: value}, nil
 		}
 
 		// TODO: We want to report the error, but continue parsing
@@ -159,7 +161,7 @@ func (p *Parser) varDeclaration() (Stmt, error) {
 		return nil, err
 	}
 
-	return &Var{Name: nameToken, Initializer: initializer}, nil
+	return &Var{Name: &nameToken, Initializer: initializer}, nil
 }
 
 // statement -> printStmt | forStmt | whileStmt | ifStmt | returnStmt | block | expressionStmt;

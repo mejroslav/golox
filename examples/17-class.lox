@@ -2,4 +2,10 @@ class Breakfast {}
 
 var breakfast = Breakfast();
 
+breakfast.start = 8;
+breakfast.end = 10;
+
+print breakfast.start;
+
+breakfast.start = 9;
 print breakfast.start;

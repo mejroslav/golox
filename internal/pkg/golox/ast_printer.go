@@ -108,6 +108,10 @@ func (a *AstPrinter) VisitGetExpr(expr *Get) (any, error) {
 	return a.parenthesizeExprs("get "+expr.Name.Lexeme, expr.Object)
 }
 
+func (a *AstPrinter) VisitSetExpr(expr *Set) (any, error) {
+	return a.parenthesizeExprs("set "+expr.Name.Lexeme, expr.Object, expr.Value)
+}
+
 // Helper methods
 
 func (a *AstPrinter) parenthesizeExprs(name string, exprs ...Expr) (string, error) {

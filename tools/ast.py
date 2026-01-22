@@ -8,6 +8,7 @@ def generate_ast(output_dir: str) -> str:
         "Binary   : Left Expr, Operator *Token, Right Expr",
         "Call     : Callee Expr, Paren *Token, Arguments []Expr",
         "Get      : Object Expr, Name *Token",
+        "Set      : Object Expr, Name *Token, Value Expr",
         "Grouping : Expression Expr",
         "Literal  : Value any",
         "Logical  : Left Expr, Operator *Token, Right Expr",
@@ -24,7 +25,7 @@ def generate_ast(output_dir: str) -> str:
         "If        : Condition Expr, ThenBranch Stmt, ElseBranch Stmt",
         "Print     : Expression Expr",
         "Return    : Keyword *Token, Value Expr",
-        "Var       : Name Token, Initializer Expr",
+        "Var       : Name *Token, Initializer Expr",
         "While     : Condition Expr, Body Stmt",
     ])
 

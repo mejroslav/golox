@@ -72,7 +72,7 @@ func (r *Resolver) VisitClassStmt(stmt *Class) (any, error) {
 }
 
 func (r *Resolver) VisitVarStmt(stmt *Var) (any, error) {
-	err := r.declare(&stmt.Name)
+	err := r.declare(stmt.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (r *Resolver) VisitVarStmt(stmt *Var) (any, error) {
 		}
 	}
 
-	err = r.define(&stmt.Name)
+	err = r.define(stmt.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -206,6 +206,16 @@ func (r *Resolver) VisitCallExpr(expr *Call) (any, error) {
 }
 
 func (r *Resolver) VisitGetExpr(expr *Get) (any, error) {
+	if err := r.resolveExpr(expr.Object); err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+
+func (r *Resolver) VisitSetExpr(expr *Set) (any, error) {
+	if err := r.resolveExpr(expr.Value); err != nil {
+		return nil, err
+	}
 	if err := r.resolveExpr(expr.Object); err != nil {
 		return nil, err
 	}
