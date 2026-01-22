@@ -7,6 +7,7 @@ def generate_ast(output_dir: str) -> str:
     define_ast(output_dir, "expr", [
         "Binary   : Left Expr, Operator *Token, Right Expr",
         "Call     : Callee Expr, Paren *Token, Arguments []Expr",
+        "Get      : Object Expr, Name *Token",
         "Grouping : Expression Expr",
         "Literal  : Value any",
         "Logical  : Left Expr, Operator *Token, Right Expr",
@@ -17,6 +18,7 @@ def generate_ast(output_dir: str) -> str:
 
     define_ast(output_dir, "stmt", [
         "Block     : Statements []Stmt",
+        "Class    : Name *Token, Methods []Function",
         "Expression : Expression Expr",
         "Function   : Name *Token, Params []*Token, Body []Stmt",
         "If        : Condition Expr, ThenBranch Stmt, ElseBranch Stmt",
@@ -52,7 +54,7 @@ def define_ast(output_dir: str, file: str, types: list[str]) -> None:
             f.write(f"type {class_name} struct {{\n")
             for field in fields.split(","):
                 name, type_ = field.strip().split(" ")
-                f.write(f"\t{name.capitalize()} {type_}\n")
+                f.write(f"\t{name} {type_}\n")
             f.write("}\n\n")
 
             # Accept method
@@ -68,7 +70,7 @@ if __name__ == "__main__":
         "-o",
         default="internal/pkg/golox",
         type=str,
-        required=True,
+        required=False,
         help="The output directory to write the generated AST code to.",
     )
     args = parser.parse_args()

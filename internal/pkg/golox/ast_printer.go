@@ -96,6 +96,18 @@ func (a *AstPrinter) VisitReturnStmt(stmt *Return) (any, error) {
 	return "(return)", nil
 }
 
+func (a *AstPrinter) VisitClassStmt(stmt *Class) (any, error) {
+	parts := []any{stmt.Name}
+	for _, method := range stmt.Methods {
+		parts = append(parts, method)
+	}
+	return a.parenthesize("class", parts...)
+}
+
+func (a *AstPrinter) VisitGetExpr(expr *Get) (any, error) {
+	return a.parenthesizeExprs("get "+expr.Name.Lexeme, expr.Object)
+}
+
 // Helper methods
 
 func (a *AstPrinter) parenthesizeExprs(name string, exprs ...Expr) (string, error) {

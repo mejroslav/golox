@@ -183,6 +183,13 @@ func (i *Interpreter) VisitBlockStmt(stmt *Block) (any, error) {
 	return i.executeBlock(stmt.Statements, NewEnvironment(i.environment))
 }
 
+func (i *Interpreter) VisitClassStmt(stmt *Class) (any, error) {
+	i.environment.Define(stmt.Name.Lexeme, nil)
+	var loxClass *LoxClass = NewLoxClass(stmt, i.environment)
+	i.environment.Assign(stmt.Name, loxClass)
+	return nil, nil
+}
+
 func (i *Interpreter) VisitIfStmt(stmt *If) (any, error) {
 	condition, err := i.evaluate(stmt.Condition)
 	if err != nil {
@@ -261,6 +268,20 @@ func (i *Interpreter) VisitCallExpr(expr *Call) (any, error) {
 	}
 
 	return function.Call(i, arguments)
+}
+
+func (i *Interpreter) VisitGetExpr(expr *Get) (any, error) {
+	object, err := i.evaluate(expr.Object)
+	if err != nil {
+		return nil, err
+	}
+
+	loxInstance, ok := object.(*LoxInstance)
+	if !ok {
+		return nil, NewRuntimeError(*expr.Name, "Only instances have properties.")
+	}
+
+	return loxInstance.Get(*expr.Name)
 }
 
 func (i *Interpreter) VisitFunctionStmt(stmt *Function) (any, error) {

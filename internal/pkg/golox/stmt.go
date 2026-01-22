@@ -8,6 +8,7 @@ type Stmt interface {
 
 type StmtVisitor interface {
 	VisitBlockStmt(stmt *Block) (any, error)
+	VisitClassStmt(stmt *Class) (any, error)
 	VisitExpressionStmt(stmt *Expression) (any, error)
 	VisitFunctionStmt(stmt *Function) (any, error)
 	VisitIfStmt(stmt *If) (any, error)
@@ -25,6 +26,15 @@ func (node *Block) Accept(visitor StmtVisitor) (any, error) {
 	return visitor.VisitBlockStmt(node)
 }
 
+type Class struct {
+	Name *Token
+	Methods []Function
+}
+
+func (node *Class) Accept(visitor StmtVisitor) (any, error) {
+	return visitor.VisitClassStmt(node)
+}
+
 type Expression struct {
 	Expression Expr
 }
@@ -34,9 +44,9 @@ func (node *Expression) Accept(visitor StmtVisitor) (any, error) {
 }
 
 type Function struct {
-	Name   *Token
+	Name *Token
 	Params []*Token
-	Body   []Stmt
+	Body []Stmt
 }
 
 func (node *Function) Accept(visitor StmtVisitor) (any, error) {
@@ -44,7 +54,7 @@ func (node *Function) Accept(visitor StmtVisitor) (any, error) {
 }
 
 type If struct {
-	Condition  Expr
+	Condition Expr
 	ThenBranch Stmt
 	ElseBranch Stmt
 }
@@ -63,7 +73,7 @@ func (node *Print) Accept(visitor StmtVisitor) (any, error) {
 
 type Return struct {
 	Keyword *Token
-	Value   Expr
+	Value Expr
 }
 
 func (node *Return) Accept(visitor StmtVisitor) (any, error) {
@@ -71,7 +81,7 @@ func (node *Return) Accept(visitor StmtVisitor) (any, error) {
 }
 
 type Var struct {
-	Name        Token
+	Name Token
 	Initializer Expr
 }
 
@@ -81,9 +91,10 @@ func (node *Var) Accept(visitor StmtVisitor) (any, error) {
 
 type While struct {
 	Condition Expr
-	Body      Stmt
+	Body Stmt
 }
 
 func (node *While) Accept(visitor StmtVisitor) (any, error) {
 	return visitor.VisitWhileStmt(node)
 }
+

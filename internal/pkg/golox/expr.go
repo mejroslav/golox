@@ -9,6 +9,7 @@ type Expr interface {
 type ExprVisitor interface {
 	VisitBinaryExpr(expr *Binary) (any, error)
 	VisitCallExpr(expr *Call) (any, error)
+	VisitGetExpr(expr *Get) (any, error)
 	VisitGroupingExpr(expr *Grouping) (any, error)
 	VisitLiteralExpr(expr *Literal) (any, error)
 	VisitLogicalExpr(expr *Logical) (any, error)
@@ -35,6 +36,15 @@ type Call struct {
 
 func (node *Call) Accept(visitor ExprVisitor) (any, error) {
 	return visitor.VisitCallExpr(node)
+}
+
+type Get struct {
+	Object Expr
+	Name *Token
+}
+
+func (node *Get) Accept(visitor ExprVisitor) (any, error) {
+	return visitor.VisitGetExpr(node)
 }
 
 type Grouping struct {

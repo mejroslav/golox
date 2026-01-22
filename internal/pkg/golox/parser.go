@@ -96,8 +96,11 @@ func (p *Parser) and() (Expr, error) {
 	return expr, nil
 }
 
-// declaration -> varDecl | statement | function ;
+// declaration -> classDecl | varDecl | statement | function ;
 func (p *Parser) declaration() (Stmt, error) {
+	if p.match(CLASS) {
+		return p.classDeclaration()
+	}
 	if p.match(VAR) {
 		return p.varDeclaration()
 	}
@@ -105,6 +108,35 @@ func (p *Parser) declaration() (Stmt, error) {
 		return p.function("function")
 	}
 	return p.statement()
+}
+
+// classDecl -> "class" IDENTIFIER "{" function* "}" ;
+func (p *Parser) classDeclaration() (Stmt, error) {
+	nameToken, err := p.consume(IDENTIFIER, "Expect class name.")
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = p.consume(LEFT_BRACE, "Expect '{' before class body.")
+	if err != nil {
+		return nil, err
+	}
+
+	methods := []Function{}
+	for !p.check(RIGHT_BRACE) && !p.isAtEnd() {
+		functionStmt, err := p.function("method")
+		if err != nil {
+			return nil, err
+		}
+		methods = append(methods, *functionStmt.(*Function))
+	}
+
+	_, err = p.consume(RIGHT_BRACE, "Expect '}' after class body.")
+	if err != nil {
+		return nil, err
+	}
+
+	return &Class{Name: &nameToken, Methods: methods}, nil
 }
 
 // varDecl -> "var" IDENTIFIER ( "=" expression )? ";" ;
@@ -496,7 +528,7 @@ func (p *Parser) unary() (Expr, error) {
 	return p.call()
 }
 
-// call -> primary ( "(" arguments? ")" )* ;
+// call -> primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
 func (p *Parser) call() (Expr, error) {
 	expr, err := p.primary()
 	if err != nil {
@@ -509,6 +541,12 @@ func (p *Parser) call() (Expr, error) {
 			if err != nil {
 				return nil, err
 			}
+		} else if p.match(DOT) {
+			nameToken, err := p.consume(IDENTIFIER, "Expect property name after '.'.")
+			if err != nil {
+				return nil, err
+			}
+			expr = &Get{Object: expr, Name: &nameToken}
 		} else {
 			break
 		}
