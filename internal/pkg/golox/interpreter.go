@@ -187,7 +187,14 @@ func (i *Interpreter) VisitBlockStmt(stmt *Block) (any, error) {
 
 func (i *Interpreter) VisitClassStmt(stmt *Class) (any, error) {
 	i.environment.Define(stmt.Name.Lexeme, nil)
-	var loxClass *LoxClass = NewLoxClass(stmt, i.environment)
+
+	methods := make(map[string]*LoxFunction)
+	for _, method := range stmt.Methods {
+		function := NewLoxFunction(&method, i.environment)
+		methods[method.Name.Lexeme] = function
+	}
+
+	var loxClass *LoxClass = NewLoxClass(stmt.Name.Lexeme, methods)
 	i.environment.Assign(stmt.Name, loxClass)
 	return nil, nil
 }

@@ -4,19 +4,12 @@ package golox
 type LoxClass struct {
 	Name    string
 	Methods map[string]*LoxFunction
-	Env     *Environment
 }
 
-func NewLoxClass(classStmt *Class, env *Environment) *LoxClass {
-	methods := make(map[string]*LoxFunction)
-	for _, method := range classStmt.Methods {
-		function := NewLoxFunction(&method, env)
-		methods[method.Name.Lexeme] = function
-	}
+func NewLoxClass(name string, methods map[string]*LoxFunction) *LoxClass {
 	return &LoxClass{
-		Name:    classStmt.Name.Lexeme,
+		Name:    name,
 		Methods: methods,
-		Env:     env,
 	}
 }
 

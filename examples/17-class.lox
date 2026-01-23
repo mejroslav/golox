@@ -1,4 +1,8 @@
-class Breakfast {}
+class Breakfast {
+    make(with){
+        print "Making breakfast with " + with + "!";
+    }
+}
 
 var breakfast = Breakfast();
 
@@ -9,3 +13,6 @@ print breakfast.start;
 
 breakfast.start = 9;
 print breakfast.start;
+
+breakfast.make("chesse");
+breakfast.make("ham");

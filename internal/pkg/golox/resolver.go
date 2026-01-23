@@ -68,6 +68,18 @@ func (r *Resolver) VisitClassStmt(stmt *Class) (any, error) {
 		return nil, err
 	}
 
+	for _, method := range stmt.Methods {
+		functionType := FT_METHOD
+		if method.Name.Lexeme == "init" {
+			functionType = FT_INITIALIZER
+		}
+
+		err = r.resolveFunction(&method, functionType)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return nil, nil
 }
 
