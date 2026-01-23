@@ -47,3 +47,9 @@ func (lf *LoxFunction) Call(interpreter *Interpreter, arguments []any) (any, err
 	}
 	return nil, nil
 }
+
+func (lf *LoxFunction) Bind(instance *LoxInstance) *LoxFunction {
+	environment := NewEnvironment(lf.Closure)
+	environment.Define("this", instance)
+	return NewLoxFunction(lf.Declaration, environment)
+}

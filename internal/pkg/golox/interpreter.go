@@ -309,6 +309,10 @@ func (i *Interpreter) VisitSetExpr(expr *Set) (any, error) {
 	return value, nil
 }
 
+func (i *Interpreter) VisitThisExpr(expr *This) (any, error) {
+	return i.lookupVariable(*expr.Keyword, expr)
+}
+
 func (i *Interpreter) VisitFunctionStmt(stmt *Function) (any, error) {
 	function := NewLoxFunction(stmt, i.environment)
 	i.environment.Define(stmt.Name.Lexeme, function)

@@ -25,7 +25,7 @@ func (li *LoxInstance) Get(name Token) (any, error) {
 	}
 
 	if method, ok := li.class.Methods[name.Lexeme]; ok {
-		return method, nil
+		return method.Bind(li), nil
 	}
 
 	err := NewRuntimeError(name, fmt.Sprintf("Class '%s' has not defined property '%s'.", li.class.Name, name.Lexeme))

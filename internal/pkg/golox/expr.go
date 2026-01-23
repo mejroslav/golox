@@ -11,6 +11,7 @@ type ExprVisitor interface {
 	VisitCallExpr(expr *Call) (any, error)
 	VisitGetExpr(expr *Get) (any, error)
 	VisitSetExpr(expr *Set) (any, error)
+	VisitThisExpr(expr *This) (any, error)
 	VisitGroupingExpr(expr *Grouping) (any, error)
 	VisitLiteralExpr(expr *Literal) (any, error)
 	VisitLogicalExpr(expr *Logical) (any, error)
@@ -56,6 +57,14 @@ type Set struct {
 
 func (node *Set) Accept(visitor ExprVisitor) (any, error) {
 	return visitor.VisitSetExpr(node)
+}
+
+type This struct {
+	Keyword *Token
+}
+
+func (node *This) Accept(visitor ExprVisitor) (any, error) {
+	return visitor.VisitThisExpr(node)
 }
 
 type Grouping struct {

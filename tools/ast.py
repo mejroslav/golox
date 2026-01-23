@@ -9,6 +9,7 @@ def generate_ast(output_dir: str) -> str:
         "Call     : Callee Expr, Paren *Token, Arguments []Expr",
         "Get      : Object Expr, Name *Token",
         "Set      : Object Expr, Name *Token, Value Expr",
+        "This     : Keyword *Token",
         "Grouping : Expression Expr",
         "Literal  : Value any",
         "Logical  : Left Expr, Operator *Token, Right Expr",

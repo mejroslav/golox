@@ -587,7 +587,7 @@ func (p *Parser) finishCall(callee Expr) (Expr, error) {
 	return &Call{Callee: callee, Paren: &paren, Arguments: arguments}, nil
 }
 
-// primary -> "true" | "false" | "nil" | NUMBER | STRING | "(" expression ")" ;
+// primary -> "true" | "false" | "nil" | NUMBER | STRING | "(" expression ")" | this | IDENTIFIER ;
 func (p *Parser) primary() (Expr, error) {
 	if p.match(FALSE) {
 		return &Literal{Value: false}, nil
@@ -614,6 +614,9 @@ func (p *Parser) primary() (Expr, error) {
 	}
 	if p.match(IDENTIFIER) {
 		return &Variable{Name: p.previous()}, nil
+	}
+	if p.match(THIS) {
+		return &This{Keyword: p.previous()}, nil
 	}
 
 	err := ParserError{

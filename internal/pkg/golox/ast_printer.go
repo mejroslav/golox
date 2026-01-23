@@ -112,6 +112,10 @@ func (a *AstPrinter) VisitSetExpr(expr *Set) (any, error) {
 	return a.parenthesizeExprs("set "+expr.Name.Lexeme, expr.Object, expr.Value)
 }
 
+func (a *AstPrinter) VisitThisExpr(expr *This) (any, error) {
+	return "this", nil
+}
+
 // Helper methods
 
 func (a *AstPrinter) parenthesizeExprs(name string, exprs ...Expr) (string, error) {

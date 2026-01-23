@@ -10,6 +10,7 @@ type Resolver struct {
 	interpreter     *Interpreter // The interpreter to resolve variables for
 	scopeStack      *utils.Stack // Stack of scopes. Each scope is a map of variable names to their defined status
 	currentFunction FunctionType // The type of the current function being resolved
+	currentClass    ClassType    // The type of the current class being resolved
 }
 
 func NewResolver(interpreter *Interpreter) *Resolver {
@@ -58,6 +59,9 @@ func (r *Resolver) VisitBlockStmt(s *Block) (any, error) {
 }
 
 func (r *Resolver) VisitClassStmt(stmt *Class) (any, error) {
+	enclosingClass := r.currentClass
+	r.currentClass = CT_CLASS
+
 	err := r.declare(stmt.Name)
 	if err != nil {
 		return nil, err
@@ -67,6 +71,9 @@ func (r *Resolver) VisitClassStmt(stmt *Class) (any, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	r.BeginScope()
+	r.scopeStack.Peek().(map[string]bool)["this"] = true
 
 	for _, method := range stmt.Methods {
 		functionType := FT_METHOD
@@ -80,6 +87,8 @@ func (r *Resolver) VisitClassStmt(stmt *Class) (any, error) {
 		}
 	}
 
+	r.EndScope()
+	r.currentClass = enclosingClass
 	return nil, nil
 }
 
@@ -231,6 +240,14 @@ func (r *Resolver) VisitSetExpr(expr *Set) (any, error) {
 	if err := r.resolveExpr(expr.Object); err != nil {
 		return nil, err
 	}
+	return nil, nil
+}
+
+func (r *Resolver) VisitThisExpr(expr *This) (any, error) {
+	if r.currentClass == CT_NONE {
+		return nil, NewRuntimeError(*expr.Keyword, "Cannot use 'this' outside of a class.")
+	}
+	r.resolveLocal(expr, expr.Keyword)
 	return nil, nil
 }
 

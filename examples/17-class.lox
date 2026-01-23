@@ -1,6 +1,11 @@
 class Breakfast {
     make(with){
+        this.with = with;
         print "Making breakfast with " + with + "!";
+    }
+
+    serve(){
+        print "Serving breakfast with " + this.with + "!";
     }
 }
 
@@ -16,3 +21,4 @@ print breakfast.start;
 
 breakfast.make("chesse");
 breakfast.make("ham");
+breakfast.serve();
