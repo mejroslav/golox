@@ -198,6 +198,9 @@ func (r *Resolver) VisitReturnStmt(stmt *Return) (any, error) {
 		return nil, NewRuntimeError(*stmt.Keyword, "Cannot return from top-level code.")
 	}
 	if stmt.Value != nil {
+		if r.currentFunction == FT_INITIALIZER {
+			return nil, NewRuntimeError(*stmt.Keyword, "Cannot return a value from an initializer.")
+		}
 		if err := r.resolveExpr(stmt.Value); err != nil {
 			return nil, err
 		}

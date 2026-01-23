@@ -18,14 +18,27 @@ func (lc *LoxClass) String() string {
 }
 
 func (lc *LoxClass) Arity() int {
-	// TODO: implement when we have initializers
-	// if initializer, ok := lc.Methods["init"]; ok {
-	// 	return initializer.Arity()
-	// }
+	if initializer, ok := lc.getInitializer(); ok {
+		return initializer.Arity()
+	}
 	return 0
 }
 
 func (lc *LoxClass) Call(interpreter *Interpreter, arguments []any) (any, error) {
 	instance := NewLoxInstance(lc)
+	if initializer, ok := lc.getInitializer(); ok {
+		_, err := initializer.Bind(instance).Call(interpreter, arguments)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return instance, nil
+}
+
+func (lc *LoxClass) getInitializer() (*LoxFunction, bool) {
+	initializer, ok := lc.Methods["init"]
+	if !ok {
+		return nil, false
+	}
+	return initializer, true
 }

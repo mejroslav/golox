@@ -2,14 +2,24 @@ package golox
 
 // LoxFunction represents a user-defined function in the Lox language.
 type LoxFunction struct {
-	Declaration *Function
-	Closure     *Environment
+	Declaration   *Function
+	Closure       *Environment
+	IsInitializer bool
 }
 
 func NewLoxFunction(declaration *Function, closure *Environment) *LoxFunction {
 	return &LoxFunction{
-		Declaration: declaration,
-		Closure:     closure,
+		Declaration:   declaration,
+		Closure:       closure,
+		IsInitializer: false,
+	}
+}
+
+func NewInitializerFunction(declaration *Function, closure *Environment) *LoxFunction {
+	return &LoxFunction{
+		Declaration:   declaration,
+		Closure:       closure,
+		IsInitializer: true,
 	}
 }
 
@@ -45,11 +55,23 @@ func (lf *LoxFunction) Call(interpreter *Interpreter, arguments []any) (any, err
 		}
 		return nil, err
 	}
+
+	if lf.IsInitializer {
+		// If this function is an initializer, always return 'this'.
+		thisValue, _ := lf.Closure.GetAt(0, "this")
+		return thisValue, nil
+	}
+
 	return nil, nil
 }
 
 func (lf *LoxFunction) Bind(instance *LoxInstance) *LoxFunction {
 	environment := NewEnvironment(lf.Closure)
 	environment.Define("this", instance)
-	return NewLoxFunction(lf.Declaration, environment)
+
+	if lf.IsInitializer {
+		return NewInitializerFunction(lf.Declaration, environment)
+	} else {
+		return NewLoxFunction(lf.Declaration, environment)
+	}
 }

@@ -1,4 +1,7 @@
 class Breakfast {
+    init(){
+        this.with = "...eeh...nothing?";
+    }
     make(with){
         this.with = with;
         print "Making breakfast with " + with + "!";
@@ -19,6 +22,9 @@ print breakfast.start;
 breakfast.start = 9;
 print breakfast.start;
 
+breakfast.serve();
 breakfast.make("chesse");
 breakfast.make("ham");
 breakfast.serve();
+
+breakfast.init();
