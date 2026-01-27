@@ -1,3 +1,30 @@
-// Here is an example of syntax error
+fun myFunction(x, y){
+    // Here is an example of syntax error
+    var xy == x * y;
+    return xy;
+}
 
-var xy == 21;
+fun HereIAm(){
+    return "Here I am!";
+}
+
+fun AnotherMistake(x){
+    while (x < 10){
+        var 20 = x;
+        x = x + 1;
+    }
+
+    fun _helper(x){
+        return x;
+    }
+
+    print _helper(x);
+}
+
+HereIAm();
+
+{}
+
+var x = 1;
+
+AnotherMistake(x);

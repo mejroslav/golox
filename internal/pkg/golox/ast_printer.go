@@ -8,9 +8,13 @@ func NewASTPrinter() *AstPrinter {
 	return &AstPrinter{}
 }
 
-func (a *AstPrinter) Print(statement Stmt) string {
-	result, _ := statement.Accept(a)
-	return result.(string)
+func (a *AstPrinter) Print(statements []Stmt) string {
+	result := ""
+	for _, statement := range statements {
+		subResult, _ := statement.Accept(a)
+		result += subResult.(string) + "\n"
+	}
+	return result
 }
 
 func (a *AstPrinter) VisitBinaryExpr(expr *Binary) (any, error) {

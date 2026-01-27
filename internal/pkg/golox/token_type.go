@@ -32,21 +32,36 @@ const (
 	NUMBER     TokenType = "NUMBER"
 
 	// Keywords.
-	AND    TokenType = "AND"
-	CLASS  TokenType = "CLASS"
-	ELSE   TokenType = "ELSE"
-	FALSE  TokenType = "FALSE"
+	NIL   TokenType = "NIL"
+	TRUE  TokenType = "TRUE"
+	FALSE TokenType = "FALSE"
+
+	// Logical operators.
+	AND TokenType = "AND"
+	OR  TokenType = "OR"
+
+	// Variable declaration.
+	VAR TokenType = "VAR"
+
+	// Control flow.
+	IF    TokenType = "IF"
+	ELSE  TokenType = "ELSE"
+	FOR   TokenType = "FOR"
+	WHILE TokenType = "WHILE"
+	BREAK TokenType = "BREAK"
+
+	// Functions and methods.
 	FUN    TokenType = "FUN"
-	FOR    TokenType = "FOR"
-	IF     TokenType = "IF"
-	NIL    TokenType = "NIL"
-	OR     TokenType = "OR"
-	PRINT  TokenType = "PRINT"
 	RETURN TokenType = "RETURN"
-	SUPER  TokenType = "SUPER"
-	THIS   TokenType = "THIS"
-	TRUE   TokenType = "TRUE"
-	VAR    TokenType = "VAR"
-	WHILE  TokenType = "WHILE"
-	EOF    TokenType = "EOF"
+
+	// Classes and inheritance.
+	CLASS TokenType = "CLASS"
+	SUPER TokenType = "SUPER"
+	THIS  TokenType = "THIS"
+
+	// Output.
+	PRINT TokenType = "PRINT"
+
+	// End of file.
+	EOF TokenType = "EOF"
 )

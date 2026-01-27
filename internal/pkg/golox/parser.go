@@ -1,5 +1,7 @@
 package golox
 
+import "fmt"
+
 // Parser implements a recursive descent parser for the Lox language
 type Parser struct {
 	tokens     []Token
@@ -11,16 +13,21 @@ func NewParser(tokens []Token) *Parser {
 	return &Parser{tokens: tokens, statements: []Stmt{}, current: 0}
 }
 
-// Parse parses the list of tokens and returns the resulting expression or an error
-func (p *Parser) Parse() ([]Stmt, error) {
+// Parse parses the list of tokens and returns the resulting statements or an error
+func (p *Parser) Parse() ([]Stmt, bool) {
+	hadError := false
 	for !p.isAtEnd() {
 		statement, err := p.declaration()
 		if err != nil {
-			return nil, err
+			fmt.Println(err.Error())
+			p.synchronize()
+			hadError = true
+			continue
 		}
 		p.statements = append(p.statements, statement)
 	}
-	return p.statements, nil
+
+	return p.statements, hadError
 }
 
 // expression -> assignment ;
@@ -711,7 +718,7 @@ func (p *Parser) synchronize() {
 		}
 
 		switch p.peek().Type {
-		case CLASS, FUN, VAR, FOR, IF, WHILE, PRINT, RETURN:
+		case CLASS, FUN, VAR, FOR, IF, WHILE, PRINT, RETURN, BREAK:
 			return
 		}
 

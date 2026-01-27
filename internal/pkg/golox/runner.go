@@ -46,22 +46,19 @@ func RunFile(path string, showTokens bool, showAST bool) error {
 	// Run the parser on the tokens
 	parser := NewParser(tokens)
 	statements, parseErr := parser.Parse()
-	if parseErr != nil {
-		return fmt.Errorf("%w", parseErr)
+	if parseErr {
+		return fmt.Errorf("parsing errors")
 	}
 
 	if showAST {
 		astPrinter := NewASTPrinter()
-		fmt.Println("AST:")
-		for _, stmt := range statements {
-			astStr := astPrinter.Print(stmt)
-			fmt.Println(astStr)
-		}
+		astPrinterResult := astPrinter.Print(statements)
+		fmt.Println(astPrinterResult)
 		fmt.Println()
 	}
 
-	interpreter := NewInterpreter()
 	// Resolve the statements
+	interpreter := NewInterpreter()
 	resolver := NewResolver(interpreter)
 	statements, err = resolver.Resolve(statements)
 	if err != nil {
