@@ -9,6 +9,7 @@ def generate_ast(output_dir: str) -> str:
         "Call     : Callee Expr, Paren *Token, Arguments []Expr",
         "Get      : Object Expr, Name *Token",
         "Set      : Object Expr, Name *Token, Value Expr",
+        "Super    : Keyword *Token, Method *Token",
         "This     : Keyword *Token",
         "Grouping : Expression Expr",
         "Literal  : Value any",
@@ -20,7 +21,7 @@ def generate_ast(output_dir: str) -> str:
 
     define_ast(output_dir, "stmt", [
         "Block     : Statements []Stmt",
-        "Class    : Name *Token, Methods []Function",
+        "Class    : Name *Token, Superclass *Variable, Methods []Function",
         "Expression : Expression Expr",
         "Function   : Name *Token, Params []*Token, Body []Stmt",
         "If        : Condition Expr, ThenBranch Stmt, ElseBranch Stmt",

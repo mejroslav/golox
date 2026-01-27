@@ -112,11 +112,20 @@ func (p *Parser) declaration() (Stmt, error) {
 	return p.statement()
 }
 
-// classDecl -> "class" IDENTIFIER "{" function* "}" ;
+// classDecl -> "class" IDENTIFIER ( "<" IDENTIFIER )? "{" function* "}" ;
 func (p *Parser) classDeclaration() (Stmt, error) {
 	nameToken, err := p.consume(IDENTIFIER, "Expect class name.")
 	if err != nil {
 		return nil, err
+	}
+
+	var superclass *Variable
+	if p.match(LESS) {
+		superclassToken, err := p.consume(IDENTIFIER, "Expect superclass name.")
+		if err != nil {
+			return nil, err
+		}
+		superclass = &Variable{Name: &superclassToken}
 	}
 
 	_, err = p.consume(LEFT_BRACE, "Expect '{' before class body.")
@@ -138,7 +147,7 @@ func (p *Parser) classDeclaration() (Stmt, error) {
 		return nil, err
 	}
 
-	return &Class{Name: &nameToken, Methods: methods}, nil
+	return &Class{Name: &nameToken, Superclass: superclass, Methods: methods}, nil
 }
 
 // varDecl -> "var" IDENTIFIER ( "=" expression )? ";" ;
@@ -587,7 +596,7 @@ func (p *Parser) finishCall(callee Expr) (Expr, error) {
 	return &Call{Callee: callee, Paren: &paren, Arguments: arguments}, nil
 }
 
-// primary -> "true" | "false" | "nil" | NUMBER | STRING | "(" expression ")" | this | IDENTIFIER ;
+// primary -> "true" | "false" | "nil" | NUMBER | STRING | "(" expression ")" | this | IDENTIFIER | "super" "." IDENTIFIER ;
 func (p *Parser) primary() (Expr, error) {
 	if p.match(FALSE) {
 		return &Literal{Value: false}, nil
@@ -617,6 +626,18 @@ func (p *Parser) primary() (Expr, error) {
 	}
 	if p.match(THIS) {
 		return &This{Keyword: p.previous()}, nil
+	}
+	if p.match(SUPER) {
+		keyword := p.previous()
+		_, err := p.consume(DOT, "Expect '.' after 'super'.")
+		if err != nil {
+			return nil, err
+		}
+		method, err := p.consume(IDENTIFIER, "Expect superclass method name.")
+		if err != nil {
+			return nil, err
+		}
+		return &Super{Keyword: keyword, Method: &method}, nil
 	}
 
 	err := ParserError{

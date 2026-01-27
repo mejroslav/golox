@@ -1,0 +1,30 @@
+class Train {
+    init(name, maxSpeed){
+        this.Name = name;
+        this.MaxSpeed = maxSpeed;
+    }
+
+    sayHi(){
+        print "Hello! My name is " + this.Name + "!";
+    }
+
+    getMaxSpeed(){
+        return this.MaxSpeed;
+    }
+}
+
+class SteamTrain < Train {
+    init(name, maxSpeed){
+        super.init(name, maxSpeed);
+    }
+    sayHi(){
+        super.sayHi();
+        print "Choo chooo!";
+    }
+}
+
+var orientExpress = SteamTrain("Orient Express", 200);
+
+orientExpress.sayHi();
+var m = orientExpress.getMaxSpeed();
+print m;

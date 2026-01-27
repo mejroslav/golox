@@ -116,6 +116,10 @@ func (a *AstPrinter) VisitThisExpr(expr *This) (any, error) {
 	return "this", nil
 }
 
+func (a *AstPrinter) VisitSuperExpr(expr *Super) (any, error) {
+	return a.parenthesizeExprs("super " + expr.Method.Lexeme)
+}
+
 // Helper methods
 
 func (a *AstPrinter) parenthesizeExprs(name string, exprs ...Expr) (string, error) {

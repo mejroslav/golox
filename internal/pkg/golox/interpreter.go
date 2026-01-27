@@ -186,7 +186,26 @@ func (i *Interpreter) VisitBlockStmt(stmt *Block) (any, error) {
 }
 
 func (i *Interpreter) VisitClassStmt(stmt *Class) (any, error) {
+	var superclass *LoxClass
+	if stmt.Superclass != nil {
+		superclassValue, err := i.evaluate(stmt.Superclass)
+		if err != nil {
+			return nil, err
+		}
+		var ok bool
+		superclass, ok = superclassValue.(*LoxClass)
+		if !ok {
+			return nil, NewRuntimeError(*stmt.Superclass.Name, "Superclass '"+stmt.Superclass.Name.Lexeme+"' must be a class.")
+		}
+	}
+
 	i.environment.Define(stmt.Name.Lexeme, nil)
+
+	if stmt.Superclass != nil {
+		// Create a new environment for "super"
+		i.environment = NewEnvironment(i.environment)
+		i.environment.Define("super", superclass)
+	}
 
 	methods := make(map[string]*LoxFunction)
 	for _, method := range stmt.Methods {
@@ -199,8 +218,13 @@ func (i *Interpreter) VisitClassStmt(stmt *Class) (any, error) {
 		}
 	}
 
-	var loxClass *LoxClass = NewLoxClass(stmt.Name.Lexeme, methods)
+	var loxClass *LoxClass = NewLoxClass(stmt.Name.Lexeme, superclass, methods)
 	i.environment.Assign(stmt.Name, loxClass)
+
+	if stmt.Superclass != nil {
+		i.environment = i.environment.GetEnclosing()
+	}
+
 	return nil, nil
 }
 
@@ -312,6 +336,40 @@ func (i *Interpreter) VisitSetExpr(expr *Set) (any, error) {
 
 	loxInstance.Set(*expr.Name, value)
 	return value, nil
+}
+
+func (i *Interpreter) VisitSuperExpr(expr *Super) (any, error) {
+	distance, ok := i.locals[expr]
+	if !ok {
+		return nil, NewRuntimeError(*expr.Method, "Undefined 'super' reference.")
+	}
+
+	superclassValue, err := i.environment.GetAt(distance, "super")
+	if err != nil {
+		return nil, err
+	}
+	superclass, ok := superclassValue.(*LoxClass)
+	if !ok {
+		return nil, NewRuntimeError(*expr.Method, "'super' is not a class.")
+	}
+
+	// We can't access 'this' directly from the environment because 'this' is stored
+	// in the enclosing environment (one level up).
+	objectValue, err := i.environment.GetAt(distance-1, "this")
+	if err != nil {
+		return nil, err
+	}
+	loxInstance, ok := objectValue.(*LoxInstance)
+	if !ok {
+		return nil, NewRuntimeError(*expr.Method, "'this' is not an instance.")
+	}
+
+	method, ok := superclass.GetMethod(expr.Method.Lexeme)
+	if !ok {
+		return nil, NewRuntimeError(*expr.Method, fmt.Sprintf("Undefined property '%s'.", expr.Method.Lexeme))
+	}
+
+	return method.Bind(loxInstance), nil
 }
 
 func (i *Interpreter) VisitThisExpr(expr *This) (any, error) {

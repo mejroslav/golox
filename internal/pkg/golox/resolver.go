@@ -72,7 +72,20 @@ func (r *Resolver) VisitClassStmt(stmt *Class) (any, error) {
 		return nil, err
 	}
 
-	r.BeginScope()
+	if stmt.Superclass != nil && stmt.Name.Lexeme == stmt.Superclass.Name.Lexeme {
+		return nil, NewRuntimeError(*stmt.Superclass.Name, "A class cannot inherit from itself.")
+	} else if stmt.Superclass != nil {
+		r.currentClass = CT_SUBCLASS
+		r.resolveExpr(stmt.Superclass)
+	}
+
+	if stmt.Superclass != nil {
+		// r.currentClass = CT_SUBCLASS
+		r.BeginScope() // Scope for "super"
+		r.scopeStack.Peek().(map[string]bool)["super"] = true
+	}
+
+	r.BeginScope() // Scope for "this"
 	r.scopeStack.Peek().(map[string]bool)["this"] = true
 
 	for _, method := range stmt.Methods {
@@ -87,7 +100,11 @@ func (r *Resolver) VisitClassStmt(stmt *Class) (any, error) {
 		}
 	}
 
-	r.EndScope()
+	r.EndScope() // End scope for "this"
+
+	if stmt.Superclass != nil {
+		r.EndScope() // End scope for "super"
+	}
 	r.currentClass = enclosingClass
 	return nil, nil
 }
@@ -243,6 +260,16 @@ func (r *Resolver) VisitSetExpr(expr *Set) (any, error) {
 	if err := r.resolveExpr(expr.Object); err != nil {
 		return nil, err
 	}
+	return nil, nil
+}
+
+func (r *Resolver) VisitSuperExpr(expr *Super) (any, error) {
+	if r.currentClass == CT_NONE {
+		return nil, NewRuntimeError(*expr.Keyword, "Cannot use 'super' outside of a class.")
+	} else if r.currentClass != CT_SUBCLASS {
+		return nil, NewRuntimeError(*expr.Keyword, "Cannot use 'super' in a class with no superclass.")
+	}
+	r.resolveLocal(expr, expr.Keyword)
 	return nil, nil
 }
 

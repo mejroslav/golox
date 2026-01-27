@@ -28,6 +28,7 @@ func (node *Block) Accept(visitor StmtVisitor) (any, error) {
 
 type Class struct {
 	Name *Token
+	Superclass *Variable
 	Methods []Function
 }
 

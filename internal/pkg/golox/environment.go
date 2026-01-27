@@ -87,3 +87,8 @@ func (e *Environment) AssignAt(distance int, name *Token, value any) error {
 		Message: "Undefined variable '" + name.Lexeme + "'.",
 	}
 }
+
+// GetEnclosing returns the enclosing environment.
+func (e *Environment) GetEnclosing() *Environment {
+	return e.enclosing
+}

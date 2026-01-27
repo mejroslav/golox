@@ -32,7 +32,7 @@ func RunFile(path string, showTokens bool, showAST bool) error {
 	codeScanner := NewCodeScanner(1, path)
 	tokens, scanErr := codeScanner.Run(source)
 	if scanErr {
-		return fmt.Errorf("scanning errors occurred")
+		return fmt.Errorf("scanning errors")
 	}
 
 	if showTokens {
@@ -47,7 +47,7 @@ func RunFile(path string, showTokens bool, showAST bool) error {
 	parser := NewParser(tokens)
 	statements, parseErr := parser.Parse()
 	if parseErr != nil {
-		return fmt.Errorf("parsing errors occurred: %w", parseErr)
+		return fmt.Errorf("%w", parseErr)
 	}
 
 	if showAST {
@@ -65,13 +65,13 @@ func RunFile(path string, showTokens bool, showAST bool) error {
 	resolver := NewResolver(interpreter)
 	statements, err = resolver.Resolve(statements)
 	if err != nil {
-		return fmt.Errorf("resolution error: %w", err)
+		return fmt.Errorf("%w", err)
 	}
 
 	// Interpret the statements
 	_, runtimeErr := interpreter.Interpret(statements)
 	if runtimeErr != nil {
-		return fmt.Errorf("runtime error: %w", runtimeErr)
+		return fmt.Errorf("%w", runtimeErr)
 	}
 	return nil
 }
