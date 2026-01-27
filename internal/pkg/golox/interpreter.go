@@ -2,13 +2,16 @@ package golox
 
 import (
 	"fmt"
+	"mejroslav/golox/v2/internal/pkg/golox/ast"
+	"mejroslav/golox/v2/internal/pkg/golox/lox_error"
+	"mejroslav/golox/v2/internal/pkg/golox/token"
 )
 
 // Interpreter interprets and executes Lox code.
 type Interpreter struct {
-	globals     *Environment // The global environment
-	environment *Environment // The current environment
-	locals      map[Expr]int // Maps expressions to their scope depth
+	globals     *Environment     // The global environment
+	environment *Environment     // The current environment
+	locals      map[ast.Expr]int // Maps ast.Expressions to their scope depth
 }
 
 func NewInterpreter() *Interpreter {
@@ -24,12 +27,12 @@ func NewInterpreter() *Interpreter {
 	return &Interpreter{
 		globals:     globals,
 		environment: environment,
-		locals:      make(map[Expr]int),
+		locals:      make(map[ast.Expr]int),
 	}
 }
 
 // Interpret interprets and executes a list of statements.
-func (i *Interpreter) Interpret(statements []Stmt) (any, error) {
+func (i *Interpreter) Interpret(statements []ast.Stmt) (any, error) {
 	for _, stmt := range statements {
 		_, err := i.execute(stmt)
 		if err != nil {
@@ -39,32 +42,32 @@ func (i *Interpreter) Interpret(statements []Stmt) (any, error) {
 	return nil, nil
 }
 
-func (i *Interpreter) VisitLiteralExpr(e *Literal) (any, error) {
+func (i *Interpreter) VisitLiteralExpr(e *ast.Literal) (any, error) {
 	return e.Value, nil
 }
 
-func (i *Interpreter) VisitGroupingExpr(e *Grouping) (any, error) {
+func (i *Interpreter) VisitGroupingExpr(e *ast.Grouping) (any, error) {
 	return i.evaluate(e.Expression)
 }
 
-func (i *Interpreter) VisitUnaryExpr(e *Unary) (any, error) {
+func (i *Interpreter) VisitUnaryExpr(e *ast.Unary) (any, error) {
 	right, err := i.evaluate(e.Right)
 	if err != nil {
 		return nil, err
 	}
 
 	switch e.Operator.Type {
-	case MINUS:
+	case token.MINUS:
 		i.checkFloat64Operand(e.Operator, right)
 		return -right.(float64), nil
-	case BANG:
+	case token.BANG:
 		return !isTruthy(right), nil
 	}
 
 	return nil, nil
 }
 
-func (i *Interpreter) VisitBinaryExpr(e *Binary) (any, error) {
+func (i *Interpreter) VisitBinaryExpr(e *ast.Binary) (any, error) {
 	left, err := i.evaluate(e.Left)
 	if err != nil {
 		return nil, err
@@ -75,60 +78,60 @@ func (i *Interpreter) VisitBinaryExpr(e *Binary) (any, error) {
 	}
 
 	switch e.Operator.Type {
-	case PLUS:
+	case token.PLUS:
 		if l, ok := left.(string); ok {
 			if r, ok := right.(string); ok {
 				return l + r, nil
 			} else {
-				err := NewRuntimeError(*e.Operator, "Cannot concatenate string "+left.(string)+" with "+fmt.Sprintf("%T", right))
+				err := lox_error.NewRuntimeError(*e.Operator, "Cannot concatenate string "+left.(string)+" with "+fmt.Sprintf("%T", right))
 				return nil, err
 			}
 		} else if _, ok := left.(float64); ok {
 			if _, ok := right.(float64); ok {
 				return left.(float64) + right.(float64), nil
 			} else {
-				err := NewRuntimeError(*e.Operator, "Cannot add number "+fmt.Sprintf("%T", left)+" with "+fmt.Sprintf("%T", right))
+				err := lox_error.NewRuntimeError(*e.Operator, "Cannot add number "+fmt.Sprintf("%T", left)+" with "+fmt.Sprintf("%T", right))
 				return nil, err
 			}
 		} else {
-			err := NewRuntimeError(*e.Operator, "Cannot add "+fmt.Sprintf("%T", left)+" with "+fmt.Sprintf("%T", right))
+			err := lox_error.NewRuntimeError(*e.Operator, "Cannot add "+fmt.Sprintf("%T", left)+" with "+fmt.Sprintf("%T", right))
 			return nil, err
 		}
-	case MINUS:
+	case token.MINUS:
 		i.checkFloat64Operands(e.Operator, left, right)
 		return left.(float64) - right.(float64), nil
-	case STAR:
+	case token.STAR:
 		i.checkFloat64Operands(e.Operator, left, right)
 		return left.(float64) * right.(float64), nil
-	case SLASH:
+	case token.SLASH:
 		i.checkFloat64Operands(e.Operator, left, right)
 		return left.(float64) / right.(float64), nil
-	case GREATER:
+	case token.GREATER:
 		i.checkFloat64Operands(e.Operator, left, right)
 		return left.(float64) > right.(float64), nil
-	case GREATER_EQUAL:
+	case token.GREATER_EQUAL:
 		i.checkFloat64Operands(e.Operator, left, right)
 		return left.(float64) >= right.(float64), nil
-	case LESS:
+	case token.LESS:
 		i.checkFloat64Operands(e.Operator, left, right)
 		return left.(float64) < right.(float64), nil
-	case LESS_EQUAL:
+	case token.LESS_EQUAL:
 		i.checkFloat64Operands(e.Operator, left, right)
 		return left.(float64) <= right.(float64), nil
-	case BANG_EQUAL:
+	case token.BANG_EQUAL:
 		return !isEqual(left, right), nil
-	case EQUAL_EQUAL:
+	case token.EQUAL_EQUAL:
 		return isEqual(left, right), nil
 	}
 
 	return nil, nil
 }
 
-func (i *Interpreter) VisitExpressionStmt(e *Expression) (any, error) {
+func (i *Interpreter) VisitExpressionStmt(e *ast.Expression) (any, error) {
 	return i.evaluate(e.Expression)
 }
 
-func (i *Interpreter) VisitPrintStmt(e *Print) (any, error) {
+func (i *Interpreter) VisitPrintStmt(e *ast.Print) (any, error) {
 	value, err := i.evaluate(e.Expression)
 	if err != nil {
 		return nil, err
@@ -137,7 +140,7 @@ func (i *Interpreter) VisitPrintStmt(e *Print) (any, error) {
 	return nil, nil
 }
 
-func (i *Interpreter) VisitVarStmt(e *Var) (any, error) {
+func (i *Interpreter) VisitVarStmt(e *ast.Var) (any, error) {
 	var value any // The default is nil. Another choice would be to raise an error, but Lox allows uninitialized variables.
 	var err error
 	if e.Initializer != nil {
@@ -150,11 +153,11 @@ func (i *Interpreter) VisitVarStmt(e *Var) (any, error) {
 	return nil, nil
 }
 
-func (i *Interpreter) VisitVariableExpr(e *Variable) (any, error) {
+func (i *Interpreter) VisitVariableExpr(e *ast.Variable) (any, error) {
 	return i.lookupVariable(*e.Name, e)
 }
 
-func (i *Interpreter) lookupVariable(name Token, expr Expr) (any, error) {
+func (i *Interpreter) lookupVariable(name token.Token, expr ast.Expr) (any, error) {
 	distance, ok := i.locals[expr]
 	if ok {
 		return i.environment.GetAt(distance, name.Lexeme)
@@ -163,7 +166,7 @@ func (i *Interpreter) lookupVariable(name Token, expr Expr) (any, error) {
 	}
 }
 
-func (i *Interpreter) VisitAssignExpr(e *Assign) (any, error) {
+func (i *Interpreter) VisitAssignExpr(e *ast.Assign) (any, error) {
 	value, err := i.evaluate(e.Value)
 	if err != nil {
 		return nil, err
@@ -181,11 +184,11 @@ func (i *Interpreter) VisitAssignExpr(e *Assign) (any, error) {
 	return value, nil
 }
 
-func (i *Interpreter) VisitBlockStmt(stmt *Block) (any, error) {
+func (i *Interpreter) VisitBlockStmt(stmt *ast.Block) (any, error) {
 	return i.executeBlock(stmt.Statements, NewEnvironment(i.environment))
 }
 
-func (i *Interpreter) VisitClassStmt(stmt *Class) (any, error) {
+func (i *Interpreter) VisitClassStmt(stmt *ast.Class) (any, error) {
 	var superclass *LoxClass
 	if stmt.Superclass != nil {
 		superclassValue, err := i.evaluate(stmt.Superclass)
@@ -195,7 +198,7 @@ func (i *Interpreter) VisitClassStmt(stmt *Class) (any, error) {
 		var ok bool
 		superclass, ok = superclassValue.(*LoxClass)
 		if !ok {
-			return nil, NewRuntimeError(*stmt.Superclass.Name, "Superclass '"+stmt.Superclass.Name.Lexeme+"' must be a class.")
+			return nil, lox_error.NewRuntimeError(*stmt.Superclass.Name, "Superclass '"+stmt.Superclass.Name.Lexeme+"' must be a class.")
 		}
 	}
 
@@ -228,7 +231,7 @@ func (i *Interpreter) VisitClassStmt(stmt *Class) (any, error) {
 	return nil, nil
 }
 
-func (i *Interpreter) VisitIfStmt(stmt *If) (any, error) {
+func (i *Interpreter) VisitIfStmt(stmt *ast.If) (any, error) {
 	condition, err := i.evaluate(stmt.Condition)
 	if err != nil {
 		return nil, err
@@ -241,13 +244,13 @@ func (i *Interpreter) VisitIfStmt(stmt *If) (any, error) {
 	return nil, nil
 }
 
-func (i *Interpreter) VisitLogicalExpr(expr *Logical) (any, error) {
-	left, err := i.evaluate(expr.Left)
+func (i *Interpreter) VisitLogicalExpr(e *ast.Logical) (any, error) {
+	left, err := i.evaluate(e.Left)
 	if err != nil {
 		return nil, err
 	}
 
-	if expr.Operator.Type == OR {
+	if e.Operator.Type == token.OR {
 		if isTruthy(left) {
 			return left, nil
 		}
@@ -257,10 +260,10 @@ func (i *Interpreter) VisitLogicalExpr(expr *Logical) (any, error) {
 		}
 	}
 
-	return i.evaluate(expr.Right)
+	return i.evaluate(e.Right)
 }
 
-func (i *Interpreter) VisitWhileStmt(stmt *While) (any, error) {
+func (i *Interpreter) VisitWhileStmt(stmt *ast.While) (any, error) {
 	for {
 		condition, err := i.evaluate(stmt.Condition)
 		if err != nil {
@@ -281,14 +284,14 @@ func (i *Interpreter) VisitWhileStmt(stmt *While) (any, error) {
 	return nil, nil
 }
 
-func (i *Interpreter) VisitCallExpr(expr *Call) (any, error) {
-	callee, err := i.evaluate(expr.Callee)
+func (i *Interpreter) VisitCallExpr(e *ast.Call) (any, error) {
+	callee, err := i.evaluate(e.Callee)
 	if err != nil {
 		return nil, err
 	}
 
 	arguments := []any{}
-	for _, argument := range expr.Arguments {
+	for _, argument := range e.Arguments {
 		arg, err := i.evaluate(argument)
 		if err != nil {
 			return nil, err
@@ -298,54 +301,54 @@ func (i *Interpreter) VisitCallExpr(expr *Call) (any, error) {
 
 	function, ok := callee.(LoxCallable)
 	if !ok {
-		return nil, NewRuntimeError(*expr.Paren, "Can only call functions and classes.")
+		return nil, lox_error.NewRuntimeError(*e.Paren, "Can only call functions and classes.")
 	}
 
 	if len(arguments) != function.Arity() {
-		return nil, NewRuntimeError(*expr.Paren, fmt.Sprintf("Expected %d arguments but got %d.", function.Arity(), len(arguments)))
+		return nil, lox_error.NewRuntimeError(*e.Paren, fmt.Sprintf("Expected %d arguments but got %d.", function.Arity(), len(arguments)))
 	}
 
 	return function.Call(i, arguments)
 }
 
-func (i *Interpreter) VisitGetExpr(expr *Get) (any, error) {
-	object, err := i.evaluate(expr.Object)
+func (i *Interpreter) VisitGetExpr(e *ast.Get) (any, error) {
+	object, err := i.evaluate(e.Object)
 	if err != nil {
 		return nil, err
 	}
 
 	loxInstance, ok := object.(*LoxInstance)
 	if !ok {
-		return nil, NewRuntimeError(*expr.Name, "Only instances have properties.")
+		return nil, lox_error.NewRuntimeError(*e.Name, "Only instances have properties.")
 	}
 
-	return loxInstance.Get(*expr.Name)
+	return loxInstance.Get(*e.Name)
 }
 
-func (i *Interpreter) VisitSetExpr(expr *Set) (any, error) {
-	object, err := i.evaluate(expr.Object)
+func (i *Interpreter) VisitSetExpr(e *ast.Set) (any, error) {
+	object, err := i.evaluate(e.Object)
 	if err != nil {
 		return nil, err
 	}
 
 	loxInstance, ok := object.(*LoxInstance)
 	if !ok {
-		return nil, NewRuntimeError(*expr.Name, "Only instances have fields.")
+		return nil, lox_error.NewRuntimeError(*e.Name, "Only instances have fields.")
 	}
 
-	value, err := i.evaluate(expr.Value)
+	value, err := i.evaluate(e.Value)
 	if err != nil {
 		return nil, err
 	}
 
-	loxInstance.Set(*expr.Name, value)
+	loxInstance.Set(*e.Name, value)
 	return value, nil
 }
 
-func (i *Interpreter) VisitSuperExpr(expr *Super) (any, error) {
-	distance, ok := i.locals[expr]
+func (i *Interpreter) VisitSuperExpr(e *ast.Super) (any, error) {
+	distance, ok := i.locals[e]
 	if !ok {
-		return nil, NewRuntimeError(*expr.Method, "Undefined 'super' reference.")
+		return nil, lox_error.NewRuntimeError(*e.Method, "Undefined 'super' reference.")
 	}
 
 	superclassValue, err := i.environment.GetAt(distance, "super")
@@ -354,7 +357,7 @@ func (i *Interpreter) VisitSuperExpr(expr *Super) (any, error) {
 	}
 	superclass, ok := superclassValue.(*LoxClass)
 	if !ok {
-		return nil, NewRuntimeError(*expr.Method, "'super' is not a class.")
+		return nil, lox_error.NewRuntimeError(*e.Method, "'super' is not a class.")
 	}
 
 	// We can't access 'this' directly from the environment because 'this' is stored
@@ -365,28 +368,28 @@ func (i *Interpreter) VisitSuperExpr(expr *Super) (any, error) {
 	}
 	loxInstance, ok := objectValue.(*LoxInstance)
 	if !ok {
-		return nil, NewRuntimeError(*expr.Method, "'this' is not an instance.")
+		return nil, lox_error.NewRuntimeError(*e.Method, "'this' is not an instance.")
 	}
 
-	method, ok := superclass.GetMethod(expr.Method.Lexeme)
+	method, ok := superclass.GetMethod(e.Method.Lexeme)
 	if !ok {
-		return nil, NewRuntimeError(*expr.Method, fmt.Sprintf("Undefined property '%s'.", expr.Method.Lexeme))
+		return nil, lox_error.NewRuntimeError(*e.Method, fmt.Sprintf("Undefined property '%s'.", e.Method.Lexeme))
 	}
 
 	return method.Bind(loxInstance), nil
 }
 
-func (i *Interpreter) VisitThisExpr(expr *This) (any, error) {
-	return i.lookupVariable(*expr.Keyword, expr)
+func (i *Interpreter) VisitThisExpr(e *ast.This) (any, error) {
+	return i.lookupVariable(*e.Keyword, e)
 }
 
-func (i *Interpreter) VisitFunctionStmt(stmt *Function) (any, error) {
+func (i *Interpreter) VisitFunctionStmt(stmt *ast.Function) (any, error) {
 	function := NewLoxFunction(stmt, i.environment)
 	i.environment.Define(stmt.Name.Lexeme, function)
 	return nil, nil
 }
 
-func (i *Interpreter) VisitReturnStmt(stmt *Return) (any, error) {
+func (i *Interpreter) VisitReturnStmt(stmt *ast.Return) (any, error) {
 	var value any
 	var err error
 	if stmt.Value != nil {
@@ -398,27 +401,27 @@ func (i *Interpreter) VisitReturnStmt(stmt *Return) (any, error) {
 	return nil, &ReturnValue{Value: value}
 }
 
-func (i *Interpreter) VisitBreakStmt(stmt *Break) (any, error) {
+func (i *Interpreter) VisitBreakStmt(stmt *ast.Break) (any, error) {
 	return nil, &BreakValue{Keyword: stmt.Keyword}
 }
 
 // ---------------------------------------------------------------------
 // Execute a statement
 
-func (i *Interpreter) execute(stmt Stmt) (any, error) {
+func (i *Interpreter) execute(stmt ast.Stmt) (any, error) {
 	return stmt.Accept(i)
 }
 
-func (i *Interpreter) resolve(expr Expr, depth int) error {
-	i.locals[expr] = depth
+func (i *Interpreter) resolve(e ast.Expr, depth int) error {
+	i.locals[e] = depth
 	return nil
 }
 
-func (i *Interpreter) evaluate(expr Expr) (any, error) {
-	return expr.Accept(i)
+func (i *Interpreter) evaluate(e ast.Expr) (any, error) {
+	return e.Accept(i)
 }
 
-func (i *Interpreter) executeBlock(statements []Stmt, environment *Environment) (any, error) {
+func (i *Interpreter) executeBlock(statements []ast.Stmt, environment *Environment) (any, error) {
 	previous := i.environment
 	i.environment = environment
 	defer func() {
@@ -488,20 +491,20 @@ func stringify(object any) string {
 }
 
 // checkFloat64Operand checks if the operand is float64, returns an error if not.
-func (i *Interpreter) checkFloat64Operand(operator *Token, operand any) error {
+func (i *Interpreter) checkFloat64Operand(operator *token.Token, operand any) error {
 	if _, ok := operand.(float64); !ok {
-		return NewRuntimeError(*operator, "Operand must be a number.")
+		return lox_error.NewRuntimeError(*operator, "Operand must be a number.")
 	}
 	return nil
 }
 
 // checkFloat64Operands checks if both operands are float64, returns an error if not.
-func (i *Interpreter) checkFloat64Operands(operator *Token, left, right any) error {
+func (i *Interpreter) checkFloat64Operands(operator *token.Token, left, right any) error {
 	if _, ok := left.(float64); !ok {
-		return NewRuntimeError(*operator, "Operand "+left.(string)+" must be a number.")
+		return lox_error.NewRuntimeError(*operator, "Operand "+left.(string)+" must be a number.")
 	}
 	if _, ok := right.(float64); !ok {
-		return NewRuntimeError(*operator, "Operand "+right.(string)+" must be a number.")
+		return lox_error.NewRuntimeError(*operator, "Operand "+right.(string)+" must be a number.")
 	}
 	return nil
 }

@@ -1,4 +1,4 @@
-# GoLox = A Lox Interpreter in Go
+# GoLox -  A Lox Interpreter in Go
 
 GoLox is an interpreter for the Lox programming language, implemented in Go. It is based on the book ["Crafting Interpreters" by Robert Nystrom](https://craftinginterpreters.com/).
 
@@ -19,8 +19,6 @@ GoLox is an interpreter for the Lox programming language, implemented in Go. It 
 
     var xy = 21?;
     -----------^-
-
-    var y = 2;
     ```
 
     Parser error messages also include line and column numbers:
@@ -31,3 +29,9 @@ GoLox is an interpreter for the Lox programming language, implemented in Go. It 
 
 - The interpreter uses Go's error handling instead of exceptions.
 - The interpreter is structured to leverage Go's type system and interfaces.
+
+## In progress
+
+- REPL mode is broken.
+- Scanner errors are nicely printed, but parser and runtime errors are not yet formatted similarly.
+- Implementation of `continue` keyword is pending, as it cannot be simply added to the for loop without restructuring.

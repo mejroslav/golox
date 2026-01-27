@@ -1,10 +1,12 @@
 package golox
 
+import "mejroslav/golox/v2/internal/pkg/golox/token"
+
 type BreakValue struct {
-	Keyword *Token
+	Keyword *token.Token
 }
 
-func NewBreakValue(keyword *Token) *BreakValue {
+func NewBreakValue(keyword *token.Token) *BreakValue {
 	return &BreakValue{
 		Keyword: keyword,
 	}

@@ -1,4 +1,4 @@
-package golox
+package token
 
 import "fmt"
 

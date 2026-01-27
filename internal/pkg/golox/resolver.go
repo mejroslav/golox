@@ -1,6 +1,9 @@
 package golox
 
 import (
+	"mejroslav/golox/v2/internal/pkg/golox/ast"
+	"mejroslav/golox/v2/internal/pkg/golox/lox_error"
+	"mejroslav/golox/v2/internal/pkg/golox/token"
 	"mejroslav/golox/v2/internal/pkg/utils"
 )
 
@@ -24,7 +27,7 @@ func NewResolver(interpreter *Interpreter) *Resolver {
 	}
 }
 
-func (r *Resolver) Resolve(statements []Stmt) ([]Stmt, error) {
+func (r *Resolver) Resolve(statements []ast.Stmt) ([]ast.Stmt, error) {
 	for _, statement := range statements {
 		if err := r.resolveStmt(statement); err != nil {
 			return nil, err
@@ -41,17 +44,17 @@ func (r *Resolver) EndScope() {
 	r.scopeStack.Pop()
 }
 
-func (r *Resolver) resolveStmt(statement Stmt) error {
+func (r *Resolver) resolveStmt(statement ast.Stmt) error {
 	_, err := statement.Accept(r)
 	return err
 }
 
-func (r *Resolver) resolveExpr(expression Expr) error {
+func (r *Resolver) resolveExpr(expression ast.Expr) error {
 	_, err := expression.Accept(r)
 	return err
 }
 
-func (r *Resolver) VisitBlockStmt(s *Block) (any, error) {
+func (r *Resolver) VisitBlockStmt(s *ast.Block) (any, error) {
 	r.BeginScope()
 	for _, stmt := range s.Statements {
 		if err := r.resolveStmt(stmt); err != nil {
@@ -62,7 +65,7 @@ func (r *Resolver) VisitBlockStmt(s *Block) (any, error) {
 	return nil, nil
 }
 
-func (r *Resolver) VisitClassStmt(stmt *Class) (any, error) {
+func (r *Resolver) VisitClassStmt(stmt *ast.Class) (any, error) {
 	enclosingClass := r.currentClass
 	r.currentClass = CT_CLASS
 	lastLoopDepth := r.currentLoopDepth
@@ -79,7 +82,7 @@ func (r *Resolver) VisitClassStmt(stmt *Class) (any, error) {
 	}
 
 	if stmt.Superclass != nil && stmt.Name.Lexeme == stmt.Superclass.Name.Lexeme {
-		return nil, NewRuntimeError(*stmt.Superclass.Name, "A class cannot inherit from itself.")
+		return nil, lox_error.NewRuntimeError(*stmt.Superclass.Name, "A class cannot inherit from itself.")
 	} else if stmt.Superclass != nil {
 		r.currentClass = CT_SUBCLASS
 		r.resolveExpr(stmt.Superclass)
@@ -116,7 +119,7 @@ func (r *Resolver) VisitClassStmt(stmt *Class) (any, error) {
 	return nil, nil
 }
 
-func (r *Resolver) VisitVarStmt(stmt *Var) (any, error) {
+func (r *Resolver) VisitVarStmt(stmt *ast.Var) (any, error) {
 	err := r.declare(stmt.Name)
 	if err != nil {
 		return nil, err
@@ -136,11 +139,11 @@ func (r *Resolver) VisitVarStmt(stmt *Var) (any, error) {
 	return nil, nil
 }
 
-func (r *Resolver) VisitVariableExpr(expr *Variable) (any, error) {
+func (r *Resolver) VisitVariableExpr(expr *ast.Variable) (any, error) {
 	if !r.scopeStack.IsEmpty() {
 		scope := r.scopeStack.Peek().(map[string]bool)
 		if defined, ok := scope[expr.Name.Lexeme]; ok && !defined {
-			return nil, NewRuntimeError(*expr.Name, "Cannot read local variable in its own initializer.")
+			return nil, lox_error.NewRuntimeError(*expr.Name, "Cannot read local variable in its own initializer.")
 		}
 	}
 
@@ -149,7 +152,7 @@ func (r *Resolver) VisitVariableExpr(expr *Variable) (any, error) {
 	return nil, nil
 }
 
-func (r *Resolver) VisitAssignExpr(expr *Assign) (any, error) {
+func (r *Resolver) VisitAssignExpr(expr *ast.Assign) (any, error) {
 	if err := r.resolveExpr(expr.Value); err != nil {
 		return nil, err
 	}
@@ -159,7 +162,7 @@ func (r *Resolver) VisitAssignExpr(expr *Assign) (any, error) {
 	return nil, nil
 }
 
-func (r *Resolver) VisitFunctionStmt(stmt *Function) (any, error) {
+func (r *Resolver) VisitFunctionStmt(stmt *ast.Function) (any, error) {
 	lastLoopDepth := r.currentLoopDepth
 	r.currentLoopDepth = 0
 	err := r.declare(stmt.Name)
@@ -181,21 +184,21 @@ func (r *Resolver) VisitFunctionStmt(stmt *Function) (any, error) {
 	return nil, nil
 }
 
-func (r *Resolver) VisitExpressionStmt(stmt *Expression) (any, error) {
+func (r *Resolver) VisitExpressionStmt(stmt *ast.Expression) (any, error) {
 	if err := r.resolveExpr(stmt.Expression); err != nil {
 		return nil, err
 	}
 	return nil, nil
 }
 
-func (r *Resolver) VisitPrintStmt(stmt *Print) (any, error) {
+func (r *Resolver) VisitPrintStmt(stmt *ast.Print) (any, error) {
 	if err := r.resolveExpr(stmt.Expression); err != nil {
 		return nil, err
 	}
 	return nil, nil
 }
 
-func (r *Resolver) VisitIfStmt(stmt *If) (any, error) {
+func (r *Resolver) VisitIfStmt(stmt *ast.If) (any, error) {
 	if err := r.resolveExpr(stmt.Condition); err != nil {
 		return nil, err
 	}
@@ -210,7 +213,7 @@ func (r *Resolver) VisitIfStmt(stmt *If) (any, error) {
 	return nil, nil
 }
 
-func (r *Resolver) VisitWhileStmt(stmt *While) (any, error) {
+func (r *Resolver) VisitWhileStmt(stmt *ast.While) (any, error) {
 	r.currentLoopDepth++
 	defer func() {
 		r.currentLoopDepth--
@@ -225,20 +228,20 @@ func (r *Resolver) VisitWhileStmt(stmt *While) (any, error) {
 	return nil, nil
 }
 
-func (r *Resolver) VisitBreakStmt(stmt *Break) (any, error) {
+func (r *Resolver) VisitBreakStmt(stmt *ast.Break) (any, error) {
 	if r.currentLoopDepth == 0 {
-		return nil, NewRuntimeError(*stmt.Keyword, "Cannot use 'break' outside of a loop.")
+		return nil, lox_error.NewRuntimeError(*stmt.Keyword, "Cannot use 'break' outside of a loop.")
 	}
 	return nil, nil
 }
 
-func (r *Resolver) VisitReturnStmt(stmt *Return) (any, error) {
+func (r *Resolver) VisitReturnStmt(stmt *ast.Return) (any, error) {
 	if r.currentFunction == FT_NONE {
-		return nil, NewRuntimeError(*stmt.Keyword, "Cannot return from top-level code.")
+		return nil, lox_error.NewRuntimeError(*stmt.Keyword, "Cannot return from top-level code.")
 	}
 	if stmt.Value != nil {
 		if r.currentFunction == FT_INITIALIZER {
-			return nil, NewRuntimeError(*stmt.Keyword, "Cannot return a value from an initializer.")
+			return nil, lox_error.NewRuntimeError(*stmt.Keyword, "Cannot return a value from an initializer.")
 		}
 		if err := r.resolveExpr(stmt.Value); err != nil {
 			return nil, err
@@ -246,7 +249,7 @@ func (r *Resolver) VisitReturnStmt(stmt *Return) (any, error) {
 	}
 	return nil, nil
 }
-func (r *Resolver) VisitBinaryExpr(expr *Binary) (any, error) {
+func (r *Resolver) VisitBinaryExpr(expr *ast.Binary) (any, error) {
 	if err := r.resolveExpr(expr.Left); err != nil {
 		return nil, err
 	}
@@ -256,7 +259,7 @@ func (r *Resolver) VisitBinaryExpr(expr *Binary) (any, error) {
 	return nil, nil
 }
 
-func (r *Resolver) VisitCallExpr(expr *Call) (any, error) {
+func (r *Resolver) VisitCallExpr(expr *ast.Call) (any, error) {
 	if err := r.resolveExpr(expr.Callee); err != nil {
 		return nil, err
 	}
@@ -268,14 +271,14 @@ func (r *Resolver) VisitCallExpr(expr *Call) (any, error) {
 	return nil, nil
 }
 
-func (r *Resolver) VisitGetExpr(expr *Get) (any, error) {
+func (r *Resolver) VisitGetExpr(expr *ast.Get) (any, error) {
 	if err := r.resolveExpr(expr.Object); err != nil {
 		return nil, err
 	}
 	return nil, nil
 }
 
-func (r *Resolver) VisitSetExpr(expr *Set) (any, error) {
+func (r *Resolver) VisitSetExpr(expr *ast.Set) (any, error) {
 	if err := r.resolveExpr(expr.Value); err != nil {
 		return nil, err
 	}
@@ -285,43 +288,43 @@ func (r *Resolver) VisitSetExpr(expr *Set) (any, error) {
 	return nil, nil
 }
 
-func (r *Resolver) VisitSuperExpr(expr *Super) (any, error) {
+func (r *Resolver) VisitSuperExpr(expr *ast.Super) (any, error) {
 	if r.currentClass == CT_NONE {
-		return nil, NewRuntimeError(*expr.Keyword, "Cannot use 'super' outside of a class.")
+		return nil, lox_error.NewRuntimeError(*expr.Keyword, "Cannot use 'super' outside of a class.")
 	} else if r.currentClass != CT_SUBCLASS {
-		return nil, NewRuntimeError(*expr.Keyword, "Cannot use 'super' in a class with no superclass.")
+		return nil, lox_error.NewRuntimeError(*expr.Keyword, "Cannot use 'super' in a class with no superclass.")
 	}
 	r.resolveLocal(expr, expr.Keyword)
 	return nil, nil
 }
 
-func (r *Resolver) VisitThisExpr(expr *This) (any, error) {
+func (r *Resolver) VisitThisExpr(expr *ast.This) (any, error) {
 	if r.currentClass == CT_NONE {
-		return nil, NewRuntimeError(*expr.Keyword, "Cannot use 'this' outside of a class.")
+		return nil, lox_error.NewRuntimeError(*expr.Keyword, "Cannot use 'this' outside of a class.")
 	}
 	r.resolveLocal(expr, expr.Keyword)
 	return nil, nil
 }
 
-func (r *Resolver) VisitGroupingExpr(expr *Grouping) (any, error) {
+func (r *Resolver) VisitGroupingExpr(expr *ast.Grouping) (any, error) {
 	if err := r.resolveExpr(expr.Expression); err != nil {
 		return nil, err
 	}
 	return nil, nil
 }
 
-func (r *Resolver) VisitLiteralExpr(expr *Literal) (any, error) {
+func (r *Resolver) VisitLiteralExpr(expr *ast.Literal) (any, error) {
 	return nil, nil
 }
 
-func (r *Resolver) VisitUnaryExpr(expr *Unary) (any, error) {
+func (r *Resolver) VisitUnaryExpr(expr *ast.Unary) (any, error) {
 	if err := r.resolveExpr(expr.Right); err != nil {
 		return nil, err
 	}
 	return nil, nil
 }
 
-func (r *Resolver) VisitLogicalExpr(expr *Logical) (any, error) {
+func (r *Resolver) VisitLogicalExpr(expr *ast.Logical) (any, error) {
 	if err := r.resolveExpr(expr.Left); err != nil {
 		return nil, err
 	}
@@ -331,19 +334,19 @@ func (r *Resolver) VisitLogicalExpr(expr *Logical) (any, error) {
 	return nil, nil
 }
 
-func (r *Resolver) declare(name *Token) error {
+func (r *Resolver) declare(name *token.Token) error {
 	if r.scopeStack.IsEmpty() {
 		return nil
 	}
 	scope := r.scopeStack.Peek().(map[string]bool)
 	if _, ok := scope[name.Lexeme]; ok {
-		return NewRuntimeError(*name, "Variable with name '"+name.Lexeme+"' already declared in this scope.")
+		return lox_error.NewRuntimeError(*name, "Variable with name '"+name.Lexeme+"' already declared in this scope.")
 	}
 	scope[name.Lexeme] = false
 	return nil
 }
 
-func (r *Resolver) define(name *Token) error {
+func (r *Resolver) define(name *token.Token) error {
 	if r.scopeStack.IsEmpty() {
 		return nil
 	}
@@ -353,7 +356,7 @@ func (r *Resolver) define(name *Token) error {
 }
 
 // resolveLocal resolves a local variable by determining its scope depth.
-func (r *Resolver) resolveLocal(expr Expr, name *Token) error {
+func (r *Resolver) resolveLocal(expr ast.Expr, name *token.Token) error {
 	for i := r.scopeStack.Size() - 1; i >= 0; i-- {
 		scope, ok := r.scopeStack.Get(i)
 		if !ok {
@@ -368,7 +371,7 @@ func (r *Resolver) resolveLocal(expr Expr, name *Token) error {
 	return nil
 }
 
-func (r *Resolver) resolveFunction(function *Function, functionType FunctionType) error {
+func (r *Resolver) resolveFunction(function *ast.Function, functionType FunctionType) error {
 	enclosingFunction := r.currentFunction
 	r.currentFunction = functionType
 

@@ -1,7 +1,7 @@
-package golox
+package token
 
-// keywords maps reserved words to their corresponding token types.
-var keywords = map[string]TokenType{
+// Keywords maps reserved words to their corresponding token types.
+var Keywords = map[string]TokenType{
 	"and":      AND,
 	"class":    CLASS,
 	"else":     ELSE,
@@ -19,5 +19,5 @@ var keywords = map[string]TokenType{
 	"true":     TRUE,
 	"var":      VAR,
 	"while":    WHILE,
-	"break":    BREAK,
+	"break":    BREAK, // Missing from the original Lox.
 }

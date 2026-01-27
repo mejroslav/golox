@@ -1,5 +1,10 @@
 package golox
 
+import (
+	"mejroslav/golox/v2/internal/pkg/golox/lox_error"
+	"mejroslav/golox/v2/internal/pkg/golox/token"
+)
+
 // Environment represents a variable scope in the Lox language.
 type Environment struct {
 	enclosing *Environment
@@ -20,7 +25,7 @@ func (e *Environment) Define(name string, value any) {
 
 // Get retrieves the value of a variable from the environment.
 // It searches recursively in enclosing environments if the variable is not found.
-func (e *Environment) Get(name *Token) (any, error) {
+func (e *Environment) Get(name *token.Token) (any, error) {
 	if value, ok := e.values[name.Lexeme]; ok {
 		return value, nil
 	}
@@ -30,7 +35,7 @@ func (e *Environment) Get(name *Token) (any, error) {
 		return e.enclosing.Get(name)
 	}
 
-	return nil, RuntimeError{
+	return nil, lox_error.RuntimeError{
 		Token:   *name,
 		Message: "Undefined variable '" + name.Lexeme + "'.",
 	}
@@ -43,7 +48,7 @@ func (e *Environment) GetAt(distance int, name string) (any, error) {
 	if value, ok := environment.values[name]; ok {
 		return value, nil
 	}
-	return nil, RuntimeError{
+	return nil, lox_error.RuntimeError{
 		Message: "Undefined variable '" + name + "'.",
 	}
 }
@@ -57,7 +62,7 @@ func (e *Environment) ancestor(distance int) *Environment {
 
 // Assign updates the value of an existing variable in the environment.
 // It searches recursively in enclosing environments if the variable is not found.
-func (e *Environment) Assign(name *Token, value any) error {
+func (e *Environment) Assign(name *token.Token, value any) error {
 	if _, ok := e.values[name.Lexeme]; ok {
 		e.values[name.Lexeme] = value
 		return nil
@@ -68,7 +73,7 @@ func (e *Environment) Assign(name *Token, value any) error {
 		return e.enclosing.Assign(name, value)
 	}
 
-	return RuntimeError{
+	return lox_error.RuntimeError{
 		Token:   *name,
 		Message: "Undefined variable '" + name.Lexeme + "'.",
 	}
@@ -76,13 +81,13 @@ func (e *Environment) Assign(name *Token, value any) error {
 
 // AssignAt updates the value of a variable at a specific distance
 // from the current environment.
-func (e *Environment) AssignAt(distance int, name *Token, value any) error {
+func (e *Environment) AssignAt(distance int, name *token.Token, value any) error {
 	environment := e.ancestor(distance)
 	if _, ok := environment.values[name.Lexeme]; ok {
 		environment.values[name.Lexeme] = value
 		return nil
 	}
-	return RuntimeError{
+	return lox_error.RuntimeError{
 		Token:   *name,
 		Message: "Undefined variable '" + name.Lexeme + "'.",
 	}

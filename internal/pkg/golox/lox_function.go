@@ -1,13 +1,15 @@
 package golox
 
+import "mejroslav/golox/v2/internal/pkg/golox/ast"
+
 // LoxFunction represents a user-defined function in the Lox language.
 type LoxFunction struct {
-	Declaration   *Function
+	Declaration   *ast.Function
 	Closure       *Environment
 	IsInitializer bool
 }
 
-func NewLoxFunction(declaration *Function, closure *Environment) *LoxFunction {
+func NewLoxFunction(declaration *ast.Function, closure *Environment) *LoxFunction {
 	return &LoxFunction{
 		Declaration:   declaration,
 		Closure:       closure,
@@ -15,7 +17,7 @@ func NewLoxFunction(declaration *Function, closure *Environment) *LoxFunction {
 	}
 }
 
-func NewInitializerFunction(declaration *Function, closure *Environment) *LoxFunction {
+func NewInitializerFunction(declaration *ast.Function, closure *Environment) *LoxFunction {
 	return &LoxFunction{
 		Declaration:   declaration,
 		Closure:       closure,

@@ -1,14 +1,16 @@
-package golox
+package scanner
 
 import (
 	"fmt"
 	"log/slog"
+	"mejroslav/golox/v2/internal/pkg/golox/lox_error"
+	"mejroslav/golox/v2/internal/pkg/golox/token"
 	"strconv"
 )
 
 type CodeScanner struct {
 	source  string
-	tokens  []Token
+	tokens  []token.Token
 	start   int
 	current int
 	line    int
@@ -22,16 +24,16 @@ func NewCodeScanner(line int, file string) *CodeScanner {
 
 // Run scans the provided source code and prints the tokens. It returns true if scanning was successful, false otherwise.
 // If verbose is true, it prints each token to stdout.
-func (s *CodeScanner) Run(source string) ([]Token, bool) {
+func (s *CodeScanner) Run(source string) ([]token.Token, bool) {
 	s.source = source
 	s.start = 0
 	s.current = 0
-	s.tokens = []Token{}
+	s.tokens = []token.Token{}
 	slog.Debug("Starting scan", "file", s.file, "length", len(s.source))
 	return s.ScanTokens()
 }
 
-func (s *CodeScanner) ScanTokens() ([]Token, bool) {
+func (s *CodeScanner) ScanTokens() ([]token.Token, bool) {
 	hadError := false
 	for !s.isAtEnd() {
 		// We are at the beginning of the next lexeme.
@@ -39,7 +41,7 @@ func (s *CodeScanner) ScanTokens() ([]Token, bool) {
 		s.scanToken()
 	}
 
-	s.addToken(EOF)
+	s.addToken(token.EOF)
 
 	return s.tokens, hadError
 }
@@ -50,50 +52,50 @@ func (s *CodeScanner) scanToken() {
 
 	// Single-character tokens.
 	case '(':
-		s.addToken(LEFT_PAREN)
+		s.addToken(token.LEFT_PAREN)
 	case ')':
-		s.addToken(RIGHT_PAREN)
+		s.addToken(token.RIGHT_PAREN)
 	case '{':
-		s.addToken(LEFT_BRACE)
+		s.addToken(token.LEFT_BRACE)
 	case '}':
-		s.addToken(RIGHT_BRACE)
+		s.addToken(token.RIGHT_BRACE)
 	case ',':
-		s.addToken(COMMA)
+		s.addToken(token.COMMA)
 	case '.':
-		s.addToken(DOT)
+		s.addToken(token.DOT)
 	case '-':
-		s.addToken(MINUS)
+		s.addToken(token.MINUS)
 	case '+':
-		s.addToken(PLUS)
+		s.addToken(token.PLUS)
 	case ';':
-		s.addToken(SEMICOLON)
+		s.addToken(token.SEMICOLON)
 	case '*':
-		s.addToken(STAR)
+		s.addToken(token.STAR)
 
 	// Operators with one or two characters.
 	case '!':
 		if s.match('=') {
-			s.addToken(BANG_EQUAL)
+			s.addToken(token.BANG_EQUAL)
 		} else {
-			s.addToken(BANG)
+			s.addToken(token.BANG)
 		}
 	case '=':
 		if s.match('=') {
-			s.addToken(EQUAL_EQUAL)
+			s.addToken(token.EQUAL_EQUAL)
 		} else {
-			s.addToken(EQUAL)
+			s.addToken(token.EQUAL)
 		}
 	case '<':
 		if s.match('=') {
-			s.addToken(LESS_EQUAL)
+			s.addToken(token.LESS_EQUAL)
 		} else {
-			s.addToken(LESS)
+			s.addToken(token.LESS)
 		}
 	case '>':
 		if s.match('=') {
-			s.addToken(GREATER_EQUAL)
+			s.addToken(token.GREATER_EQUAL)
 		} else {
-			s.addToken(GREATER)
+			s.addToken(token.GREATER)
 		}
 
 	case '/':
@@ -103,7 +105,7 @@ func (s *CodeScanner) scanToken() {
 				s.advance()
 			}
 		} else {
-			s.addToken(SLASH)
+			s.addToken(token.SLASH)
 		}
 
 	// String literals.
@@ -128,7 +130,7 @@ func (s *CodeScanner) scanToken() {
 			s.identifier()
 		} else {
 			// Unexpected character.
-			err := ScannerError{
+			err := lox_error.ScannerError{
 				File:   s.file,
 				Line:   s.line,
 				Column: s.column,
@@ -141,14 +143,14 @@ func (s *CodeScanner) scanToken() {
 	}
 }
 
-func (s *CodeScanner) addToken(tokenType TokenType) {
+func (s *CodeScanner) addToken(tokenType token.TokenType) {
 	text := s.source[s.start:s.current]
-	s.tokens = append(s.tokens, NewToken(tokenType, text, nil, s.file, s.line, s.column))
+	s.tokens = append(s.tokens, token.NewToken(tokenType, text, nil, s.file, s.line, s.column))
 }
 
-func (s *CodeScanner) addTokenWithValue(tokenType TokenType, value any) {
+func (s *CodeScanner) addTokenWithValue(tokenType token.TokenType, value any) {
 	text := s.source[s.start:s.current]
-	s.tokens = append(s.tokens, NewToken(tokenType, text, value, s.file, s.line, s.column))
+	s.tokens = append(s.tokens, token.NewToken(tokenType, text, value, s.file, s.line, s.column))
 }
 
 // string handles string literals, consuming characters until the closing quote is found.
@@ -164,7 +166,7 @@ func (s *CodeScanner) string() {
 	}
 
 	if s.isAtEnd() {
-		err := ScannerError{
+		err := lox_error.ScannerError{
 			File:    s.file,
 			Line:    s.line,
 			Context: s.getContextLines(),
@@ -179,7 +181,7 @@ func (s *CodeScanner) string() {
 
 	// Trim the surrounding quotes.
 	value := s.source[s.start+1 : s.current-1]
-	s.addTokenWithValue(STRING, value)
+	s.addTokenWithValue(token.STRING, value)
 }
 
 // number handles numeric literals. It supports both integer and floating-point numbers.
@@ -200,7 +202,7 @@ func (s *CodeScanner) number() {
 
 	value, err := strconv.ParseFloat(s.source[s.start:s.current], 64)
 	if err != nil {
-		err := ScannerError{
+		err := lox_error.ScannerError{
 			File:    s.file,
 			Line:    s.line,
 			Context: s.getContextLines(),
@@ -209,7 +211,7 @@ func (s *CodeScanner) number() {
 		fmt.Println(err.Error())
 		return
 	}
-	s.addTokenWithValue(NUMBER, value)
+	s.addTokenWithValue(token.NUMBER, value)
 }
 
 // identifier handles identifiers and keywords.
@@ -219,9 +221,9 @@ func (s *CodeScanner) identifier() {
 	}
 
 	text := s.source[s.start:s.current]
-	tokenType, exists := keywords[text]
+	tokenType, exists := token.Keywords[text]
 	if !exists {
-		tokenType = IDENTIFIER
+		tokenType = token.IDENTIFIER
 	}
 
 	s.addToken(tokenType)

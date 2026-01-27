@@ -1,4 +1,4 @@
-package golox
+package token
 
 type TokenType string
 

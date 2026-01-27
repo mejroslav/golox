@@ -1,6 +1,10 @@
 package golox
 
-import "fmt"
+import (
+	"fmt"
+	"mejroslav/golox/v2/internal/pkg/golox/lox_error"
+	"mejroslav/golox/v2/internal/pkg/golox/token"
+)
 
 // LoxInstance represents an instance of a Lox class.
 type LoxInstance struct {
@@ -21,7 +25,7 @@ func (li *LoxInstance) String() string {
 }
 
 // Get retrieves a property or method from the instance.
-func (li *LoxInstance) Get(name Token) (any, error) {
+func (li *LoxInstance) Get(name token.Token) (any, error) {
 	if value, ok := li.Fields[name.Lexeme]; ok {
 		return value, nil
 	}
@@ -30,12 +34,12 @@ func (li *LoxInstance) Get(name Token) (any, error) {
 		return method.Bind(li), nil
 	}
 
-	err := NewRuntimeError(name, fmt.Sprintf("Class '%s' has not defined property '%s'.", li.Class.Name, name.Lexeme))
+	err := lox_error.NewRuntimeError(name, fmt.Sprintf("Class '%s' has not defined property '%s'.", li.Class.Name, name.Lexeme))
 	return nil, err
 }
 
 // Set assigns a value to a property of the instance.
-func (li *LoxInstance) Set(name Token, value any) {
+func (li *LoxInstance) Set(name token.Token, value any) {
 	li.Fields[name.Lexeme] = value
 }
 

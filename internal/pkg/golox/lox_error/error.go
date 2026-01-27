@@ -1,6 +1,9 @@
-package golox
+package lox_error
 
-import "fmt"
+import (
+	"fmt"
+	"mejroslav/golox/v2/internal/pkg/golox/token"
+)
 
 // ScannerError reports an error encountered during scanning
 type ScannerError struct {
@@ -16,13 +19,13 @@ func (s ScannerError) Error() string {
 }
 
 type ParserError struct {
-	Token   Token
+	Token   token.Token
 	Message string
 }
 
 // ParserError reports an error encountered during parsing
 func (p ParserError) Error() string {
-	if p.Token.Type == EOF {
+	if p.Token.Type == token.EOF {
 		return parserErrorMsg(p.Token.File, p.Token.Line, p.Token.Column, "at end", p.Message)
 	} else {
 		return parserErrorMsg(p.Token.File, p.Token.Line, p.Token.Column, "at '"+p.Token.Lexeme+"'", p.Message)
@@ -34,11 +37,11 @@ func parserErrorMsg(file string, line int, column int, where string, message str
 }
 
 type RuntimeError struct {
-	Token   Token
+	Token   token.Token
 	Message string
 }
 
-func NewRuntimeError(token Token, message string) RuntimeError {
+func NewRuntimeError(token token.Token, message string) RuntimeError {
 	return RuntimeError{
 		Token:   token,
 		Message: message,

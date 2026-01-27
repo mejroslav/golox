@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"log/slog"
+	lox_scanner "mejroslav/golox/v2/internal/pkg/golox/scanner"
 	"os"
 )
 
@@ -29,7 +30,7 @@ func RunFile(path string, showTokens bool, showAST bool) error {
 	}
 
 	// Run the code scanner on the loaded source
-	codeScanner := NewCodeScanner(1, path)
+	codeScanner := lox_scanner.NewCodeScanner(1, path)
 	tokens, scanErr := codeScanner.Run(source)
 	if scanErr {
 		return fmt.Errorf("scanning errors")
@@ -88,7 +89,7 @@ func RunPrompt() {
 		if line == "exit" {
 			break
 		}
-		codeScanner := NewCodeScanner(lineNumber, "<stdin>")
+		codeScanner := lox_scanner.NewCodeScanner(lineNumber, "<stdin>")
 		codeScanner.Run(line)
 		lineNumber++
 	}
