@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"log/slog"
+	"mejroslav/golox/v2/internal/pkg/golox/ast_printer"
 	"mejroslav/golox/v2/internal/pkg/golox/interpreter"
 	"mejroslav/golox/v2/internal/pkg/golox/resolver"
 	lox_scanner "mejroslav/golox/v2/internal/pkg/golox/scanner"
@@ -54,7 +55,7 @@ func RunFile(path string, showTokens bool, showAST bool) error {
 	}
 
 	if showAST {
-		astPrinter := NewASTPrinter()
+		astPrinter := ast_printer.NewASTPrinter()
 		astPrinterResult := astPrinter.Print(statements)
 		fmt.Println(astPrinterResult)
 		fmt.Println()

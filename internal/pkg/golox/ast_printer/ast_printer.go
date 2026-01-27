@@ -1,4 +1,4 @@
-package golox
+package ast_printer
 
 import (
 	"fmt"
