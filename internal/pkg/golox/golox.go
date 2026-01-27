@@ -1,3 +1,4 @@
+// Package golox implements interpreter entry point for GoLox.
 package golox
 
 import (
