@@ -1,10 +1,11 @@
-package golox
+package interpreter
 
 import (
 	"fmt"
 	"mejroslav/golox/v2/internal/pkg/golox/ast"
 	"mejroslav/golox/v2/internal/pkg/golox/lox_error"
 	"mejroslav/golox/v2/internal/pkg/golox/token"
+	"mejroslav/golox/v2/internal/pkg/golox/types"
 )
 
 // Interpreter interprets and executes Lox code.
@@ -274,7 +275,7 @@ func (i *Interpreter) VisitWhileStmt(stmt *ast.While) (any, error) {
 		}
 		_, err = i.execute(stmt.Body)
 		if err != nil {
-			if _, ok := err.(*BreakValue); ok {
+			if _, ok := err.(*types.BreakValue); ok {
 				// Break out of the loop
 				break
 			}
@@ -398,11 +399,11 @@ func (i *Interpreter) VisitReturnStmt(stmt *ast.Return) (any, error) {
 			return nil, err
 		}
 	}
-	return nil, &ReturnValue{Value: value}
+	return nil, &types.ReturnValue{Value: value}
 }
 
 func (i *Interpreter) VisitBreakStmt(stmt *ast.Break) (any, error) {
-	return nil, &BreakValue{Keyword: stmt.Keyword}
+	return nil, &types.BreakValue{Keyword: stmt.Keyword}
 }
 
 // ---------------------------------------------------------------------
@@ -412,7 +413,7 @@ func (i *Interpreter) execute(stmt ast.Stmt) (any, error) {
 	return stmt.Accept(i)
 }
 
-func (i *Interpreter) resolve(e ast.Expr, depth int) error {
+func (i *Interpreter) Resolve(e ast.Expr, depth int) error {
 	i.locals[e] = depth
 	return nil
 }

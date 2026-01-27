@@ -1,4 +1,4 @@
-package golox
+package interpreter
 
 // LoxClass represents a class in the Lox language.
 type LoxClass struct {

@@ -1,6 +1,9 @@
-package golox
+package interpreter
 
-import "mejroslav/golox/v2/internal/pkg/golox/ast"
+import (
+	"mejroslav/golox/v2/internal/pkg/golox/ast"
+	"mejroslav/golox/v2/internal/pkg/golox/types"
+)
 
 // LoxFunction represents a user-defined function in the Lox language.
 type LoxFunction struct {
@@ -52,7 +55,7 @@ func (lf *LoxFunction) Call(interpreter *Interpreter, arguments []any) (any, err
 		// ReturnValue is used to handle return statements in functions
 		// and to propagate the return value up the call stack.
 		// If we catch a ReturnValue error, we extract the value and return it.
-		if returnErr, ok := err.(*ReturnValue); ok {
+		if returnErr, ok := err.(*types.ReturnValue); ok {
 			return returnErr.Value, nil
 		}
 		return nil, err

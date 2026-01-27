@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"log/slog"
+	"mejroslav/golox/v2/internal/pkg/golox/interpreter"
+	"mejroslav/golox/v2/internal/pkg/golox/resolver"
 	lox_scanner "mejroslav/golox/v2/internal/pkg/golox/scanner"
 	"os"
 )
@@ -59,8 +61,8 @@ func RunFile(path string, showTokens bool, showAST bool) error {
 	}
 
 	// Resolve the statements
-	interpreter := NewInterpreter()
-	resolver := NewResolver(interpreter)
+	interpreter := interpreter.NewInterpreter()
+	resolver := resolver.NewResolver(interpreter)
 	statements, err = resolver.Resolve(statements)
 	if err != nil {
 		return fmt.Errorf("%w", err)

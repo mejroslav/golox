@@ -1,4 +1,4 @@
-package golox
+package types
 
 import "mejroslav/golox/v2/internal/pkg/golox/token"
 

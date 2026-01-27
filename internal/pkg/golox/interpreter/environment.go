@@ -1,4 +1,4 @@
-package golox
+package interpreter
 
 import (
 	"mejroslav/golox/v2/internal/pkg/golox/lox_error"

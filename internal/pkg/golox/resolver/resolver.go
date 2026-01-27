@@ -1,28 +1,30 @@
-package golox
+package resolver
 
 import (
 	"mejroslav/golox/v2/internal/pkg/golox/ast"
+	"mejroslav/golox/v2/internal/pkg/golox/interpreter"
 	"mejroslav/golox/v2/internal/pkg/golox/lox_error"
 	"mejroslav/golox/v2/internal/pkg/golox/token"
+	"mejroslav/golox/v2/internal/pkg/golox/types"
 	"mejroslav/golox/v2/internal/pkg/utils"
 )
 
 // Resolver performs static analysis to resolve variable bindings.
 // It determines the scope depth of each variable and informs the interpreter.
 type Resolver struct {
-	interpreter      *Interpreter // The interpreter to resolve variables for
-	scopeStack       *utils.Stack // Stack of scopes. Each scope is a map of variable names to their defined status
-	currentFunction  FunctionType // The type of the current function being resolved
-	currentClass     ClassType    // The type of the current class being resolved
-	currentLoopDepth int          // The current depth of nested loops
+	interpreter      *interpreter.Interpreter // The interpreter to resolve variables for
+	scopeStack       *utils.Stack             // Stack of scopes. Each scope is a map of variable names to their defined status
+	currentFunction  types.FunctionType       // The type of the current function being resolved
+	currentClass     types.ClassType          // The type of the current class being resolved
+	currentLoopDepth int                      // The current depth of nested loops
 }
 
-func NewResolver(interpreter *Interpreter) *Resolver {
+func NewResolver(interpreter *interpreter.Interpreter) *Resolver {
 	return &Resolver{
 		interpreter:      interpreter,
 		scopeStack:       utils.NewStack(),
-		currentFunction:  FT_NONE,
-		currentClass:     CT_NONE,
+		currentFunction:  types.FT_NONE,
+		currentClass:     types.CT_NONE,
 		currentLoopDepth: 0,
 	}
 }
@@ -67,7 +69,7 @@ func (r *Resolver) VisitBlockStmt(s *ast.Block) (any, error) {
 
 func (r *Resolver) VisitClassStmt(stmt *ast.Class) (any, error) {
 	enclosingClass := r.currentClass
-	r.currentClass = CT_CLASS
+	r.currentClass = types.CT_CLASS
 	lastLoopDepth := r.currentLoopDepth
 	r.currentLoopDepth = 0
 
@@ -84,7 +86,7 @@ func (r *Resolver) VisitClassStmt(stmt *ast.Class) (any, error) {
 	if stmt.Superclass != nil && stmt.Name.Lexeme == stmt.Superclass.Name.Lexeme {
 		return nil, lox_error.NewRuntimeError(*stmt.Superclass.Name, "A class cannot inherit from itself.")
 	} else if stmt.Superclass != nil {
-		r.currentClass = CT_SUBCLASS
+		r.currentClass = types.CT_SUBCLASS
 		r.resolveExpr(stmt.Superclass)
 	}
 
@@ -98,9 +100,9 @@ func (r *Resolver) VisitClassStmt(stmt *ast.Class) (any, error) {
 	r.scopeStack.Peek().(map[string]bool)["this"] = true
 
 	for _, method := range stmt.Methods {
-		functionType := FT_METHOD
+		functionType := types.FT_METHOD
 		if method.Name.Lexeme == "init" {
-			functionType = FT_INITIALIZER
+			functionType = types.FT_INITIALIZER
 		}
 
 		err = r.resolveFunction(&method, functionType)
@@ -175,7 +177,7 @@ func (r *Resolver) VisitFunctionStmt(stmt *ast.Function) (any, error) {
 		return nil, err
 	}
 
-	err = r.resolveFunction(stmt, FT_FUNCTION)
+	err = r.resolveFunction(stmt, types.FT_FUNCTION)
 	if err != nil {
 		return nil, err
 	}
@@ -236,11 +238,11 @@ func (r *Resolver) VisitBreakStmt(stmt *ast.Break) (any, error) {
 }
 
 func (r *Resolver) VisitReturnStmt(stmt *ast.Return) (any, error) {
-	if r.currentFunction == FT_NONE {
+	if r.currentFunction == types.FT_NONE {
 		return nil, lox_error.NewRuntimeError(*stmt.Keyword, "Cannot return from top-level code.")
 	}
 	if stmt.Value != nil {
-		if r.currentFunction == FT_INITIALIZER {
+		if r.currentFunction == types.FT_INITIALIZER {
 			return nil, lox_error.NewRuntimeError(*stmt.Keyword, "Cannot return a value from an initializer.")
 		}
 		if err := r.resolveExpr(stmt.Value); err != nil {
@@ -289,9 +291,9 @@ func (r *Resolver) VisitSetExpr(expr *ast.Set) (any, error) {
 }
 
 func (r *Resolver) VisitSuperExpr(expr *ast.Super) (any, error) {
-	if r.currentClass == CT_NONE {
+	if r.currentClass == types.CT_NONE {
 		return nil, lox_error.NewRuntimeError(*expr.Keyword, "Cannot use 'super' outside of a class.")
-	} else if r.currentClass != CT_SUBCLASS {
+	} else if r.currentClass != types.CT_SUBCLASS {
 		return nil, lox_error.NewRuntimeError(*expr.Keyword, "Cannot use 'super' in a class with no superclass.")
 	}
 	r.resolveLocal(expr, expr.Keyword)
@@ -299,7 +301,7 @@ func (r *Resolver) VisitSuperExpr(expr *ast.Super) (any, error) {
 }
 
 func (r *Resolver) VisitThisExpr(expr *ast.This) (any, error) {
-	if r.currentClass == CT_NONE {
+	if r.currentClass == types.CT_NONE {
 		return nil, lox_error.NewRuntimeError(*expr.Keyword, "Cannot use 'this' outside of a class.")
 	}
 	r.resolveLocal(expr, expr.Keyword)
@@ -363,7 +365,7 @@ func (r *Resolver) resolveLocal(expr ast.Expr, name *token.Token) error {
 			continue
 		}
 		if _, ok := scope.(map[string]bool)[name.Lexeme]; ok {
-			r.interpreter.resolve(expr, r.scopeStack.Size()-1-i)
+			r.interpreter.Resolve(expr, r.scopeStack.Size()-1-i)
 			return nil
 		}
 	}
@@ -371,7 +373,7 @@ func (r *Resolver) resolveLocal(expr ast.Expr, name *token.Token) error {
 	return nil
 }
 
-func (r *Resolver) resolveFunction(function *ast.Function, functionType FunctionType) error {
+func (r *Resolver) resolveFunction(function *ast.Function, functionType types.FunctionType) error {
 	enclosingFunction := r.currentFunction
 	r.currentFunction = functionType
 

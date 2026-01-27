@@ -1,4 +1,4 @@
-package golox
+package interpreter
 
 // LoxCallable represents any callable entity in the Lox language,
 // such as functions and classes.
