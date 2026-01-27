@@ -1,0 +1,25 @@
+for (var i = 0; i < 10; i = i + 1){
+    for (var j = 0; j < 10; j = j + 1){
+        if (j == 2) break;
+        print j;
+    }
+    print "New row";
+
+    fun inside(){
+        print "Entering";
+        var x = 0;
+        while (x < 10){
+            if (x == 5) break;
+            x = x + 1;
+        }
+        print "Exiting";
+    }
+
+    inside();
+}
+
+fun giveMeABreak(){
+    break;
+}
+
+giveMeABreak();

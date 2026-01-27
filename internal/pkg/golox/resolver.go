@@ -7,16 +7,20 @@ import (
 // Resolver performs static analysis to resolve variable bindings.
 // It determines the scope depth of each variable and informs the interpreter.
 type Resolver struct {
-	interpreter     *Interpreter // The interpreter to resolve variables for
-	scopeStack      *utils.Stack // Stack of scopes. Each scope is a map of variable names to their defined status
-	currentFunction FunctionType // The type of the current function being resolved
-	currentClass    ClassType    // The type of the current class being resolved
+	interpreter      *Interpreter // The interpreter to resolve variables for
+	scopeStack       *utils.Stack // Stack of scopes. Each scope is a map of variable names to their defined status
+	currentFunction  FunctionType // The type of the current function being resolved
+	currentClass     ClassType    // The type of the current class being resolved
+	currentLoopDepth int          // The current depth of nested loops
 }
 
 func NewResolver(interpreter *Interpreter) *Resolver {
 	return &Resolver{
-		interpreter: interpreter,
-		scopeStack:  utils.NewStack(),
+		interpreter:      interpreter,
+		scopeStack:       utils.NewStack(),
+		currentFunction:  FT_NONE,
+		currentClass:     CT_NONE,
+		currentLoopDepth: 0,
 	}
 }
 
@@ -61,6 +65,8 @@ func (r *Resolver) VisitBlockStmt(s *Block) (any, error) {
 func (r *Resolver) VisitClassStmt(stmt *Class) (any, error) {
 	enclosingClass := r.currentClass
 	r.currentClass = CT_CLASS
+	lastLoopDepth := r.currentLoopDepth
+	r.currentLoopDepth = 0
 
 	err := r.declare(stmt.Name)
 	if err != nil {
@@ -106,6 +112,7 @@ func (r *Resolver) VisitClassStmt(stmt *Class) (any, error) {
 		r.EndScope() // End scope for "super"
 	}
 	r.currentClass = enclosingClass
+	r.currentLoopDepth = lastLoopDepth
 	return nil, nil
 }
 
@@ -153,6 +160,8 @@ func (r *Resolver) VisitAssignExpr(expr *Assign) (any, error) {
 }
 
 func (r *Resolver) VisitFunctionStmt(stmt *Function) (any, error) {
+	lastLoopDepth := r.currentLoopDepth
+	r.currentLoopDepth = 0
 	err := r.declare(stmt.Name)
 	if err != nil {
 		return nil, err
@@ -168,6 +177,7 @@ func (r *Resolver) VisitFunctionStmt(stmt *Function) (any, error) {
 		return nil, err
 	}
 
+	r.currentLoopDepth = lastLoopDepth
 	return nil, nil
 }
 
@@ -201,11 +211,23 @@ func (r *Resolver) VisitIfStmt(stmt *If) (any, error) {
 }
 
 func (r *Resolver) VisitWhileStmt(stmt *While) (any, error) {
+	r.currentLoopDepth++
+	defer func() {
+		r.currentLoopDepth--
+	}()
+
 	if err := r.resolveExpr(stmt.Condition); err != nil {
 		return nil, err
 	}
 	if err := r.resolveStmt(stmt.Body); err != nil {
 		return nil, err
+	}
+	return nil, nil
+}
+
+func (r *Resolver) VisitBreakStmt(stmt *Break) (any, error) {
+	if r.currentLoopDepth == 0 {
+		return nil, NewRuntimeError(*stmt.Keyword, "Cannot use 'break' outside of a loop.")
 	}
 	return nil, nil
 }

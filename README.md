@@ -6,6 +6,7 @@ GoLox is an interpreter for the Lox programming language, implemented in Go. It 
 
 - Added native function `input()` to read user input from the console.
 - Added keyword `function` as an alias for `fun` when declaring functions.
+- Added `break` statement to exit loops early.
 
 ## Differences from the original implementation
 

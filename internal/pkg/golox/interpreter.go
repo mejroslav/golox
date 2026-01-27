@@ -271,6 +271,10 @@ func (i *Interpreter) VisitWhileStmt(stmt *While) (any, error) {
 		}
 		_, err = i.execute(stmt.Body)
 		if err != nil {
+			if _, ok := err.(*BreakValue); ok {
+				// Break out of the loop
+				break
+			}
 			return nil, err
 		}
 	}
@@ -392,6 +396,10 @@ func (i *Interpreter) VisitReturnStmt(stmt *Return) (any, error) {
 		}
 	}
 	return nil, &ReturnValue{Value: value}
+}
+
+func (i *Interpreter) VisitBreakStmt(stmt *Break) (any, error) {
+	return nil, &BreakValue{Keyword: stmt.Keyword}
 }
 
 // ---------------------------------------------------------------------

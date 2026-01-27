@@ -180,7 +180,7 @@ func (p *Parser) varDeclaration() (Stmt, error) {
 	return &Var{Name: &nameToken, Initializer: initializer}, nil
 }
 
-// statement -> printStmt | forStmt | whileStmt | ifStmt | returnStmt | block | expressionStmt;
+// statement -> printStmt | forStmt | whileStmt | ifStmt | returnStmt | breakStmt | block | expressionStmt;
 func (p *Parser) statement() (Stmt, error) {
 	if p.match(IF) {
 		return p.ifStatement()
@@ -196,6 +196,9 @@ func (p *Parser) statement() (Stmt, error) {
 	}
 	if p.match(PRINT) {
 		return p.printStatement()
+	}
+	if p.match(BREAK) {
+		return p.breakStatement()
 	}
 	if p.match(LEFT_BRACE) {
 		statements, err := p.block()
@@ -317,6 +320,16 @@ func (p *Parser) forStatement() (Stmt, error) {
 	}
 
 	return body, nil
+}
+
+// breakStmt -> "break" ";" ;
+func (p *Parser) breakStatement() (Stmt, error) {
+	keyword := p.previous()
+	_, err := p.consume(SEMICOLON, "Expect ';' after 'break'.")
+	if err != nil {
+		return nil, err
+	}
+	return &Break{Keyword: keyword}, nil
 }
 
 // ifStmt -> "if" "(" expression ")" statement ( "else" statement )? ;

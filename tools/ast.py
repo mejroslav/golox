@@ -24,11 +24,12 @@ def generate_ast(output_dir: str) -> str:
         "Class    : Name *Token, Superclass *Variable, Methods []Function",
         "Expression : Expression Expr",
         "Function   : Name *Token, Params []*Token, Body []Stmt",
-        "If        : Condition Expr, ThenBranch Stmt, ElseBranch Stmt",
-        "Print     : Expression Expr",
         "Return    : Keyword *Token, Value Expr",
-        "Var       : Name *Token, Initializer Expr",
+        "If        : Condition Expr, ThenBranch Stmt, ElseBranch Stmt",
         "While     : Condition Expr, Body Stmt",
+        "Break     : Keyword *Token",
+        "Print     : Expression Expr",
+        "Var       : Name *Token, Initializer Expr",
     ])
 
 def define_ast(output_dir: str, file: str, types: list[str]) -> None:
