@@ -1,4 +1,4 @@
-package golox
+package runner
 
 import (
 	"bufio"
@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"mejroslav/golox/v2/internal/pkg/golox/ast_printer"
 	"mejroslav/golox/v2/internal/pkg/golox/interpreter"
+	"mejroslav/golox/v2/internal/pkg/golox/parser"
 	"mejroslav/golox/v2/internal/pkg/golox/resolver"
 	lox_scanner "mejroslav/golox/v2/internal/pkg/golox/scanner"
 	"os"
@@ -48,7 +49,7 @@ func RunFile(path string, showTokens bool, showAST bool) error {
 	}
 
 	// Run the parser on the tokens
-	parser := NewParser(tokens)
+	parser := parser.NewParser(tokens)
 	statements, parseErr := parser.Parse()
 	if parseErr {
 		return fmt.Errorf("parsing errors")

@@ -1,4 +1,4 @@
-package golox
+package parser
 
 import (
 	"fmt"

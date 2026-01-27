@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log/slog"
+	"mejroslav/golox/v2/internal/pkg/golox/runner"
 	"os"
 
 	"github.com/lmittmann/tint"
@@ -54,12 +55,12 @@ func Main() {
 	slog.Debug("Starting golox interpreter")
 	args := flag.Args()
 	if len(args) < 1 {
-		RunPrompt()
+		runner.RunPrompt()
 		os.Exit(0)
 	}
 
 	filePath := args[0]
-	if err := RunFile(filePath, *showTokens, *showAST); err != nil {
+	if err := runner.RunFile(filePath, *showTokens, *showAST); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
