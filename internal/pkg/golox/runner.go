@@ -10,7 +10,7 @@ import (
 // runFile reads a file line by line and prints each line to stdout.
 func RunFile(path string, showTokens bool, showAST bool) error {
 
-	slog.Info("Running file", "path", path)
+	slog.Debug("Running file", "path", path)
 	file, err := os.Open(path)
 	if err != nil {
 		return fmt.Errorf("could not open file: %w", err)

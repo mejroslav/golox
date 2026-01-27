@@ -50,7 +50,7 @@ func Main() {
 		TimeFormat: "2006-01-02 15:04:05.000",
 	})))
 
-	slog.Info("Starting golox interpreter")
+	slog.Debug("Starting golox interpreter")
 	args := flag.Args()
 	if len(args) < 1 {
 		RunPrompt()
@@ -63,5 +63,5 @@ func Main() {
 		os.Exit(1)
 	}
 
-	slog.Info("Execution completed successfully")
+	slog.Debug("Execution completed successfully")
 }
