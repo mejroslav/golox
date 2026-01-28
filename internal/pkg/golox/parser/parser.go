@@ -2,9 +2,10 @@ package parser
 
 import (
 	"fmt"
-	"mejroslav/golox/v2/internal/pkg/golox/ast"
-	"mejroslav/golox/v2/internal/pkg/golox/lox_error"
-	"mejroslav/golox/v2/internal/pkg/golox/token"
+
+	"github.com/mejroslav/golox/internal/pkg/golox/ast"
+	"github.com/mejroslav/golox/internal/pkg/golox/lox_error"
+	"github.com/mejroslav/golox/internal/pkg/golox/token"
 )
 
 // Parser implements a recursive descent parser for the Lox language

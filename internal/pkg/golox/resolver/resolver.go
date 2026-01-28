@@ -1,12 +1,12 @@
 package resolver
 
 import (
-	"mejroslav/golox/v2/internal/pkg/golox/ast"
-	"mejroslav/golox/v2/internal/pkg/golox/interpreter"
-	"mejroslav/golox/v2/internal/pkg/golox/lox_error"
-	"mejroslav/golox/v2/internal/pkg/golox/token"
-	"mejroslav/golox/v2/internal/pkg/golox/types"
-	"mejroslav/golox/v2/internal/pkg/utils"
+	"github.com/mejroslav/golox/internal/pkg/golox/ast"
+	"github.com/mejroslav/golox/internal/pkg/golox/interpreter"
+	"github.com/mejroslav/golox/internal/pkg/golox/lox_error"
+	"github.com/mejroslav/golox/internal/pkg/golox/token"
+	"github.com/mejroslav/golox/internal/pkg/golox/types"
+	"github.com/mejroslav/golox/internal/pkg/utils"
 )
 
 // Resolver performs static analysis to resolve variable bindings.

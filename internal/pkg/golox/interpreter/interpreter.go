@@ -2,10 +2,11 @@ package interpreter
 
 import (
 	"fmt"
-	"mejroslav/golox/v2/internal/pkg/golox/ast"
-	"mejroslav/golox/v2/internal/pkg/golox/lox_error"
-	"mejroslav/golox/v2/internal/pkg/golox/token"
-	"mejroslav/golox/v2/internal/pkg/golox/types"
+
+	"github.com/mejroslav/golox/internal/pkg/golox/ast"
+	"github.com/mejroslav/golox/internal/pkg/golox/lox_error"
+	"github.com/mejroslav/golox/internal/pkg/golox/token"
+	"github.com/mejroslav/golox/internal/pkg/golox/types"
 )
 
 // Interpreter interprets and executes Lox code.

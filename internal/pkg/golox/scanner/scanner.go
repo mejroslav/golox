@@ -3,9 +3,10 @@ package scanner
 import (
 	"fmt"
 	"log/slog"
-	"mejroslav/golox/v2/internal/pkg/golox/lox_error"
-	"mejroslav/golox/v2/internal/pkg/golox/token"
 	"strconv"
+
+	"github.com/mejroslav/golox/internal/pkg/golox/lox_error"
+	"github.com/mejroslav/golox/internal/pkg/golox/token"
 )
 
 type CodeScanner struct {

@@ -2,7 +2,8 @@ package lox_error
 
 import (
 	"fmt"
-	"mejroslav/golox/v2/internal/pkg/golox/token"
+
+	"github.com/mejroslav/golox/internal/pkg/golox/token"
 )
 
 // ScannerError reports an error encountered during scanning

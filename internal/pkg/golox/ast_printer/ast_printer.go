@@ -2,7 +2,8 @@ package ast_printer
 
 import (
 	"fmt"
-	"mejroslav/golox/v2/internal/pkg/golox/ast"
+
+	"github.com/mejroslav/golox/internal/pkg/golox/ast"
 )
 
 type AstPrinter struct{}

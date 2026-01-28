@@ -1,6 +1,6 @@
 package types
 
-import "mejroslav/golox/v2/internal/pkg/golox/token"
+import "github.com/mejroslav/golox/internal/pkg/golox/token"
 
 type BreakValue struct {
 	Keyword *token.Token

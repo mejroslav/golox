@@ -1,8 +1,8 @@
 package interpreter
 
 import (
-	"mejroslav/golox/v2/internal/pkg/golox/lox_error"
-	"mejroslav/golox/v2/internal/pkg/golox/token"
+	"github.com/mejroslav/golox/internal/pkg/golox/lox_error"
+	"github.com/mejroslav/golox/internal/pkg/golox/token"
 )
 
 // Environment represents a variable scope in the Lox language.

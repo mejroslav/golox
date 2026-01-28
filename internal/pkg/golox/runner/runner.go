@@ -4,12 +4,13 @@ import (
 	"bufio"
 	"fmt"
 	"log/slog"
-	"mejroslav/golox/v2/internal/pkg/golox/ast_printer"
-	"mejroslav/golox/v2/internal/pkg/golox/interpreter"
-	"mejroslav/golox/v2/internal/pkg/golox/parser"
-	"mejroslav/golox/v2/internal/pkg/golox/resolver"
-	lox_scanner "mejroslav/golox/v2/internal/pkg/golox/scanner"
 	"os"
+
+	"github.com/mejroslav/golox/internal/pkg/golox/ast_printer"
+	"github.com/mejroslav/golox/internal/pkg/golox/interpreter"
+	"github.com/mejroslav/golox/internal/pkg/golox/parser"
+	"github.com/mejroslav/golox/internal/pkg/golox/resolver"
+	lox_scanner "github.com/mejroslav/golox/internal/pkg/golox/scanner"
 )
 
 // runFile reads a file line by line and prints each line to stdout.

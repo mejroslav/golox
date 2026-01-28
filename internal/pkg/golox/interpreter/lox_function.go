@@ -1,8 +1,8 @@
 package interpreter
 
 import (
-	"mejroslav/golox/v2/internal/pkg/golox/ast"
-	"mejroslav/golox/v2/internal/pkg/golox/types"
+	"github.com/mejroslav/golox/internal/pkg/golox/ast"
+	"github.com/mejroslav/golox/internal/pkg/golox/types"
 )
 
 // LoxFunction represents a user-defined function in the Lox language.

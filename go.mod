@@ -1,4 +1,4 @@
-module mejroslav/golox/v2
+module github.com/mejroslav/golox
 
 go 1.22.2
 

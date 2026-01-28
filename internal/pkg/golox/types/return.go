@@ -2,7 +2,8 @@ package types
 
 import (
 	"fmt"
-	"mejroslav/golox/v2/internal/pkg/golox/token"
+
+	"github.com/mejroslav/golox/internal/pkg/golox/token"
 )
 
 // ReturnValue is a special error type used to handle return statements in functions.

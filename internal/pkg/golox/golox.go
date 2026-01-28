@@ -5,8 +5,9 @@ import (
 	"flag"
 	"fmt"
 	"log/slog"
-	"mejroslav/golox/v2/internal/pkg/golox/runner"
 	"os"
+
+	"github.com/mejroslav/golox/internal/pkg/golox/runner"
 
 	"github.com/lmittmann/tint"
 )

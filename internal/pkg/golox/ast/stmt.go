@@ -2,7 +2,7 @@
 
 package ast
 
-import "mejroslav/golox/v2/internal/pkg/golox/token"
+import "github.com/mejroslav/golox/internal/pkg/golox/token"
 
 type Stmt interface {
 	Accept(visitor StmtVisitor) (any, error)
