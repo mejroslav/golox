@@ -2,6 +2,14 @@
 
 GoLox is an interpreter for the Lox programming language, implemented in Go. It is based on the book ["Crafting Interpreters" by Robert Nystrom](https://craftinginterpreters.com/).
 
+## Usage
+
+To run a Lox script, use the following command:
+
+```shell
+./golox path/to/script.lox
+```
+
 ## Differences from the original language
 
 - Added native function `input()` to read user input from the console.
